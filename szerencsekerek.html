@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Szerencsekerék Multiplayer - v1.3</title>
+    <title>Szerencsekerék Multiplayer - v1.4</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; line-height: 1.6; }
@@ -16,6 +16,7 @@
         button { cursor: pointer; background-color: #007bff; color: white; border: none; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         #tipp-szekcio { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e2f0d9;}
+        #sajat-feladvany-szekcio { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #fff3cd; border: 2px solid #ffeeba; }
         #chat-szekcio { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e8f4f8; border: 2px solid #bce0ef; }
         #chat-messages { list-style-type: none; padding-left: 0; max-height: 200px; overflow-y: auto; }
         #chat-messages li { padding: 5px; border-bottom: 1px solid #ccc; }
@@ -77,8 +78,24 @@
             <button id="tipp-kuld-btn">Tipp elküldése</button>
         </div>
 
+        <!-- GYŐZELEMKOR MEGJELENŐ LEHETŐSÉGEK (GÉP VAGY EGYÉNI) -->
         <div id="gyozelem-akciok" class="hidden">
-            <button id="kovi-feladvany-btn" class="gyozelem-gomb">Következő Gép Sorsolta Feladvány ➡️</button>
+            <button id="kovi-feladvany-btn" class="gyozelem-gomb">Gép sorsol feladványt ➡️</button>
+            <button id="sajat-feladvany-btn" class="gyozelem-gomb">Saját/Más feladványa 📝</button>
+        </div>
+
+        <!-- EGYÉNI FELADVÁNY LÉTREHOZÁSA ÉS DELEGÁLÁSA -->
+        <div id="sajat-feladvany-szekcio" class="hidden">
+            <h3 id="felkeres-cimsor">Írj be egy feladványt a többieknek!</h3>
+            <input type="text" id="sajat-kategoria-input" placeholder="Kategória" style="display:block; margin-bottom:5px;" autocomplete="off">
+            <input type="text" id="sajat-szoveg-input" placeholder="A feladvány szövege" style="display:block; margin-bottom:5px;" autocomplete="off">
+            <button id="sajat-kuld-btn" style="background-color: #28a745;">Kész, induljon a kör!</button>
+        </div>
+
+        <div id="jatekos-valaszto-szekcio" class="hidden" style="margin-top:20px; padding:15px; background:#e2f0d9;">
+            <h3>Ki adja fel a feladványt?</h3>
+            <div id="jatekos-radio-lista"></div>
+            <button id="kivalaszt-kuld-btn">Kiválaszt</button>
         </div>
 
         <button id="visszater-btn" class="visszater-gomb hidden">Itt vagyok / Visszatértem (Alt+I)</button>
@@ -242,6 +259,8 @@
             document.getElementById("atvezeto-kepernyo").classList.add("hidden");
             document.getElementById("game-screen").classList.remove("hidden");
             document.getElementById("gyozelem-akciok").classList.add("hidden");
+            document.getElementById("sajat-feladvany-szekcio").classList.add("hidden");
+            document.getElementById("jatekos-valaszto-szekcio").classList.add("hidden");
             document.getElementById("visszater-btn").classList.add("hidden");
             document.getElementById("chat-szekcio").classList.add("hidden");
             document.getElementById("chat-messages").innerHTML = "";
@@ -395,28 +414,71 @@
             RenderszoMaszk(data.teljesSzo);
             jatekosokCache = data.jatekosok; 
 
-            // 1. GOMBOK AZONNALI LETILTÁSA
+            // Gombok letiltása
             document.getElementById("porget-btn").disabled = true;
             document.getElementById("megfejt-btn").disabled = true;
             
             document.getElementById("chat-szekcio").classList.remove("hidden");
 
-            // Győztesnek az indító gomb
+            // Ha én vagyok a győztes, megkapom mindkét opciót
             if (data.nyertes.id === myId) {
                 document.getElementById("gyozelem-akciok").classList.remove("hidden");
                 document.getElementById("kovi-feladvany-btn").focus();
             }
 
-            // 2. HA ÉN TÁVOL VAGYOK, MEGJELENIK A VISSZATÉRÉS GOMB
             const en = data.jatekosok.find(j => j.id === myId);
             if (en && en.tavolVan) {
                 document.getElementById("visszater-btn").classList.remove("hidden");
             }
         });
 
+        // Gép sorsol feladványt
         document.getElementById("kovi-feladvany-btn").addEventListener("click", () => {
             socket.emit('next_random_puzzle');
             document.getElementById("gyozelem-akciok").classList.add("hidden");
+        });
+
+        // Saját / Más feladványa gomb kezelése
+        document.getElementById("sajat-feladvany-btn").addEventListener("click", () => {
+            document.getElementById("gyozelem-akciok").classList.add("hidden");
+            const kontener = document.getElementById("jatekos-radio-lista");
+            kontener.innerHTML = "";
+            jatekosokCache.forEach(j => {
+                kontener.innerHTML += `<label style="display:block" class="radio-opcio"><input type="radio" name="celpont" value="${j.id}"> ${j.nev} ${j.id === myId ? "(Én)" : ""}</label>`;
+            });
+            document.getElementById("jatekos-valaszto-szekcio").classList.remove("hidden");
+        });
+
+        document.getElementById("kivalaszt-kuld-btn").addEventListener("click", () => {
+            const radio = document.querySelector('input[name="celpont"]:checked');
+            if(!radio) return alert("Válassz ki valakit!");
+            socket.emit('request_custom_puzzle', radio.value);
+            document.getElementById("jatekos-valaszto-szekcio").classList.add("hidden");
+        });
+
+        socket.on('custom_puzzle_delegated', (data) => {
+            if (data.celpontId === myId) {
+                MonddKi(`${data.kerte} téged kért fel! Kérlek, írj be egy feladványt.`);
+                document.getElementById("sajat-feladvany-szekcio").classList.remove("hidden");
+                document.getElementById("sajat-kategoria-input").focus();
+            } else {
+                MonddKi(`${data.kerte} felkérte egy játékost, aki épp a feladványt gépeli...`);
+            }
+        });
+
+        document.getElementById("sajat-kuld-btn").addEventListener("click", () => {
+            const kategoria = document.getElementById("sajat-kategoria-input").value.trim();
+            const szoveg = document.getElementById("sajat-szoveg-input").value.toUpperCase().replace(/[^A-ZÁÉÍÓÖŐÚÜŰ ]/g, '').trim();
+            if(szoveg.length < 2) {
+                alert("A feladvány túl rövid!");
+                document.getElementById("sajat-szoveg-input").focus();
+                return;
+            }
+            
+            socket.emit('submit_custom_puzzle', { kategoria, szoveg });
+            document.getElementById("sajat-feladvany-szekcio").classList.add("hidden");
+            document.getElementById("sajat-kategoria-input").value = "";
+            document.getElementById("sajat-szoveg-input").value = "";
         });
 
         socket.on('atvezeto_inditasa', () => {
