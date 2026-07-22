@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szerencsekerék Multiplayer - v1.3</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; line-height: 1.6; }
+        .hidden { display: none !important; }
+        #feladvany-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
+        .betu-blokk { width: 40px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-bottom: 4px solid #333; background-color: #fff; cursor: pointer; }
+        .betu-blokk:focus { outline: 3px solid #0056b3; background-color: #e1f5fe; }
+        .szokoz-blokk { width: 30px; height: 50px; border-bottom: none; background-color: transparent; }
+        button, input { font-size: 18px; padding: 10px; margin: 5px 0; border-radius: 5px;}
+        button { cursor: pointer; background-color: #007bff; color: white; border: none; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #tipp-szekcio { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e2f0d9;}
+        #chat-szekcio { margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e8f4f8; border: 2px solid #bce0ef; }
+        #chat-messages { list-style-type: none; padding-left: 0; max-height: 200px; overflow-y: auto; }
+        #chat-messages li { padding: 5px; border-bottom: 1px solid #ccc; }
+        .gyozelem-gomb { background-color: #28a745; margin-right: 10px; margin-top: 10px;}
+        .visszater-gomb { background-color: #ff9800; font-weight: bold; width: 100%; margin-top:15px; }
+        #atvezeto-kepernyo { text-align: center; padding: 50px; background-color: #e2e3e5; border-radius: 10px; margin-top: 20px; }
+        .info-szekcio { background-color: #f8f9fa; border: 2px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <section id="lobby-screen">
+        <h1>Szerencsekerék Hálózat</h1>
+        <p><strong>Gyorsbillentyűk játék közben:</strong> <code>Alt+P</code> (Pörgetés), <code>Alt+M</code> (Megfejtés), <code>Alt+J</code> (Állás), <code>Alt+K</code> (Kimaradás), <code>Alt+I</code> (Visszatérés)</p>
+        
+        <div class="info-szekcio">
+            <label style="display:block;">Írd be a neved:</label>
+            <input type="text" id="my-name-input" placeholder="Pl: Géza" style="width: 100%; max-width: 300px;" autocomplete="off">
+            <label style="display:block; margin-top:10px;">Szoba neve:</label>
+            <input type="text" id="room-name-input" placeholder="Pl: pentek-este" style="width: 100%; max-width: 300px;" autocomplete="off">
+            <br>
+            <button id="join-btn" style="background-color: #28a745;">Csatlakozás a szobához</button>
+        </div>
+        
+        <div id="lobby-players" class="hidden info-szekcio">
+            <h3>Csatlakozott játékosok a szobában:</h3>
+            <ul id="players-list"></ul>
+            <button id="start-game-btn" class="hidden">Játék indítása mindenkinél! 🚀</button>
+        </div>
+    </section>
+
+    <section id="atvezeto-kepernyo" class="hidden">
+        <h2 id="atvezeto-cimsor" tabindex="-1">Következő feladvány betöltése...</h2>
+        <p>Várakozás a kör indulására.</p>
+    </section>
+
+    <section id="game-screen" class="hidden">
+        <h2 id="kategoria-cimsor" tabindex="-1">Kategória: -</h2>
+        
+        <div id="feladvany-container" role="group" aria-label="A feladvány betűi nyílbillentyűkkel navigálhatóak"></div>
+        
+        <hr>
+        <section aria-labelledby="status-title">
+            <h3 id="status-title">Aktuális állás</h3>
+            <p id="aktualis-jatekos-neve">Soron lévő játékos: <strong>-</strong></p>
+            <p id="aktualis-jatekos-pontja">Pontok betöltése...</p>
+        </section>
+        <hr>
+
+        <div id="akciogombok">
+            <button id="porget-btn" disabled>Pörgetés 🎡</button>
+            <button id="megfejt-btn" disabled>Megfejtem 💡</button>
+        </div>
+
+        <div id="tipp-szekcio" class="hidden">
+            <p id="tipp-info-szoveg"></p>
+            <label for="tipp-betu" class="hidden">Írd be a tippelt betűt:</label>
+            <input type="text" id="tipp-betu" maxlength="1" autocomplete="off" aria-label="Tippelt betű">
+            <button id="tipp-kuld-btn">Tipp elküldése</button>
+        </div>
+
+        <div id="gyozelem-akciok" class="hidden">
+            <button id="kovi-feladvany-btn" class="gyozelem-gomb">Következő Gép Sorsolta Feladvány ➡️</button>
+        </div>
+
+        <button id="visszater-btn" class="visszater-gomb hidden">Itt vagyok / Visszatértem (Alt+I)</button>
+
+        <div id="chat-szekcio" class="hidden">
+            <h3>Szoba Csevegő (Kör végi egyeztetés)</h3>
+            <input type="text" id="chat-input" placeholder="Írj egy üzenetet..." style="width: 70%;" autocomplete="off">
+            <button id="chat-kuld-btn">Küldés</button>
+            <ul id="chat-messages" aria-live="polite"></ul>
+        </div>
+        
+        <div id="kerek-bejelento" aria-live="assertive" role="alert" style="position: absolute; left: -9999px;"></div>
+    </section>
+
+    <script>
+        const socket = io();
+        let myId = null;
+        let myName = "";
+        let mySessionId = ""; 
+        let utolsoPorgetesResult = null;
+        let aktJatekosId = null;
+        let jatekosokCache = []; 
+
+        const kerekBejelento = document.getElementById("kerek-bejelento");
+        const BEJELENTESI_SZUNET = 2000; 
+
+        // --- MUNKAMENET MEGŐRZÉSE (REJOIN LOGIKA) ---
+        window.onload = () => {
+            mySessionId = sessionStorage.getItem('sk_sessionId');
+            if (!mySessionId) {
+                mySessionId = Math.random().toString(36).substring(2, 12);
+                sessionStorage.setItem('sk_sessionId', mySessionId);
+            }
+            
+            const mentesNev = sessionStorage.getItem('sk_myName');
+            const mentesSzoba = sessionStorage.getItem('sk_myRoom');
+            if (mentesNev && mentesSzoba) {
+                document.getElementById("my-name-input").value = mentesNev;
+                document.getElementById("room-name-input").value = mentesSzoba;
+            }
+        };
+
+        function MonddKi(szoveg) {
+            kerekBejelento.textContent = ""; 
+            setTimeout(() => { kerekBejelento.textContent = szoveg; }, 50); 
+        }
+
+        function JatszHang(fajlnev) {
+            const audio = new Audio('hangok/' + fajlnev);
+            audio.play().catch(e => {}); 
+        }
+
+        // --- LOBBY ÉS CSATLAKOZÁS ---
+        document.getElementById("join-btn").addEventListener("click", () => {
+            const nev = document.getElementById("my-name-input").value.trim();
+            const szoba = document.getElementById("room-name-input").value.trim();
+            if(!nev || !szoba) return alert("Írd be a neved és a szoba nevét is!");
+            
+            JatszHang("indulas.mp3");
+
+            myName = nev;
+            sessionStorage.setItem('sk_myName', nev);
+            sessionStorage.setItem('sk_myRoom', szoba);
+            
+            socket.emit('join_room', { nev, szoba, sessionId: mySessionId });
+            
+            document.getElementById("join-btn").disabled = true;
+            document.getElementById("my-name-input").disabled = true;
+            document.getElementById("room-name-input").disabled = true;
+            document.getElementById("lobby-players").classList.remove("hidden");
+        });
+
+        socket.on('connect', () => { myId = socket.id; });
+
+        socket.on('lobby_update', (jatekosok) => {
+            jatekosokCache = jatekosok;
+            const list = document.getElementById("players-list");
+            list.innerHTML = "";
+            jatekosok.forEach(j => {
+                let statusz = "";
+                if (j.disconnected) statusz = " [OFFLINE]";
+                else if (j.tavolVan) statusz = " [TÁVOL]";
+                
+                const li = document.createElement("li");
+                li.textContent = j.nev + (j.id === myId ? " (Te)" : "") + statusz;
+                list.appendChild(li);
+            });
+            if(jatekosok.length > 0) document.getElementById("start-game-btn").classList.remove("hidden");
+        });
+
+        document.getElementById("start-game-btn").addEventListener("click", () => {
+            socket.emit('start_game');
+        });
+
+        // --- ÚJRACSATLAKOZÁSI ESEMÉNYEK ---
+        socket.on('player_reconnected', (data) => {
+            MonddKi(`${data.nev} visszacsatlakozott a szobába.`);
+        });
+        socket.on('player_disconnected', (data) => {
+            MonddKi(`${data.nev} kapcsolata megszakadt.`);
+        });
+        
+        socket.on('rejoin_game_state', (data) => {
+            document.getElementById("lobby-screen").classList.add("hidden");
+            document.getElementById("atvezeto-kepernyo").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
+            RenderszoMaszk(data.maszkoltSzoveg);
+            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+        });
+
+        // --- FELADVÁNY MASZK RENDELERÉSE ---
+        function RenderszoMaszk(maszk) {
+            const kontener = document.getElementById("feladvany-container");
+            kontener.innerHTML = "";
+            for (let i = 0; i < maszk.length; i++) {
+                const char = maszk[i];
+                const sorszam = i + 1;
+                const div = document.createElement("div");
+
+                if (char === " ") {
+                    div.className = "szokoz-blokk";
+                    div.setAttribute("aria-label", `${sorszam}. hely: Szóköz`);
+                } else {
+                    div.className = "betu-blokk";
+                    div.tabIndex = 0;
+                    if (char === "_") {
+                        div.textContent = "_";
+                        div.setAttribute("aria-label", `${sorszam}. betű: Ismeretlen`);
+                    } else {
+                        div.textContent = char;
+                        div.setAttribute("aria-label", `${sorszam}. betű: ${char}`);
+                    }
+                }
+                
+                div.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowRight" && div.nextElementSibling) div.nextElementSibling.focus();
+                    else if (e.key === "ArrowLeft" && div.previousElementSibling) div.previousElementSibling.focus();
+                });
+                kontener.appendChild(div);
+            }
+        }
+
+        function JatekosKijelzoFrissitese(jatekosok, aktJatekos) {
+            jatekosokCache = jatekosok;
+            aktJatekosId = aktJatekos.id;
+            document.getElementById("aktualis-jatekos-neve").innerHTML = `Soron lévő játékos: <strong>${aktJatekos.nev}</strong>`;
+            
+            const en = jatekosok.find(j => j.id === myId);
+            if(en) {
+                document.getElementById("aktualis-jatekos-pontja").innerHTML = `Te pontjaid: Körben: <strong>${en.korPont}</strong> | Össz: <strong>${en.osszPont}</strong>`;
+            }
+
+            const myTurn = (aktJatekos.id === myId);
+            document.getElementById("porget-btn").disabled = !myTurn;
+            document.getElementById("megfejt-btn").disabled = !myTurn;
+        }
+
+        socket.on('game_started', (data) => {
+            document.getElementById("lobby-screen").classList.add("hidden");
+            document.getElementById("atvezeto-kepernyo").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            document.getElementById("gyozelem-akciok").classList.add("hidden");
+            document.getElementById("visszater-btn").classList.add("hidden");
+            document.getElementById("chat-szekcio").classList.add("hidden");
+            document.getElementById("chat-messages").innerHTML = "";
+            
+            document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
+            RenderszoMaszk(data.maszkoltSzoveg);
+            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+            
+            JatszHang("feladvany.mp3");
+            const jovevoNeve = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön`;
+            MonddKi(`Új kör indult! A feladvány hossza ${data.maszkoltSzoveg.length} karakter. ${jovevoNeve}.`);
+        });
+
+        // --- GYORSBILLENTYŰK ---
+        document.addEventListener("keydown", (e) => {
+            if (document.getElementById("game-screen").classList.contains("hidden")) return;
+            if (document.activeElement.tagName === "INPUT") return; 
+
+            if (e.altKey) {
+                const key = e.key.toLowerCase();
+                if (key === 'p') {
+                    e.preventDefault();
+                    if (!document.getElementById("porget-btn").disabled) document.getElementById("porget-btn").click();
+                } else if (key === 'm') {
+                    e.preventDefault();
+                    if (!document.getElementById("megfejt-btn").disabled) document.getElementById("megfejt-btn").click();
+                } else if (key === 'j') {
+                    e.preventDefault();
+                    if (jatekosokCache.length > 0 && aktJatekosId) {
+                        const akt = jatekosokCache.find(j => j.id === aktJatekosId);
+                        if (akt) MonddKi(`Soron lévő játékos: ${akt.nev}. Körben gyűjtött pontja: ${akt.korPont}. Összesített pontja: ${akt.osszPont}.`);
+                    }
+                } else if (key === 'k') {
+                    e.preventDefault();
+                    if (aktJatekosId === myId && !document.getElementById("porget-btn").disabled) {
+                        if(confirm("Kijelentkezel a játékból ideiglenesen? A rendszer átugorja a köreidet, amíg vissza nem térsz.")) {
+                            socket.emit('skip_turn');
+                            document.getElementById("tipp-szekcio").classList.add("hidden");
+                            document.getElementById("porget-btn").disabled = true;
+                            document.getElementById("megfejt-btn").disabled = true;
+                        }
+                    }
+                } else if (key === 'i') {
+                    e.preventDefault();
+                    if (!document.getElementById("visszater-btn").classList.contains("hidden")) {
+                        document.getElementById("visszater-btn").click();
+                    }
+                }
+            }
+        });
+
+        socket.on('player_skipped', (data) => {
+            MonddKi(`${data.jatekosNev} ideiglenesen kimarad a játékból.`);
+        });
+
+        socket.on('player_returned', (data) => {
+            MonddKi(`${data.jatekosNev} újra játékban van!`);
+        });
+
+        document.getElementById("visszater-btn").addEventListener("click", () => {
+            socket.emit('return_to_game');
+            document.getElementById("visszater-btn").classList.add("hidden");
+        });
+
+        // --- PÖRGETÉS ---
+        document.getElementById("porget-btn").addEventListener("click", () => {
+            socket.emit('spin_wheel');
+            document.getElementById("porget-btn").disabled = true;
+            document.getElementById("megfejt-btn").disabled = true;
+        });
+
+        socket.on('wheel_spinning', (data) => {
+            JatszHang("porog.mp3");
+            const nevP = data.jatekosNev === myName ? "Te pörgetsz" : `${data.jatekosNev} pörget`;
+            MonddKi(`${nevP}...`);
+        });
+
+        socket.on('spin_result', (data) => {
+            utolsoPorgetesResult = data.result;
+            if (data.result === "CSŐD" || data.result === "PASSZ") {
+                JatszHang(data.result === "CSŐD" ? "csod.mp3" : "passz.mp3");
+                MonddKi(`${data.aktualisJatekos.nev} ${data.result.toLowerCase()}ot pörgetett. A következő játékos jön.`);
+            } else {
+                MonddKi(`A pörgetés eredménye: ${data.result} pont!`);
+                if (data.aktualisJatekos.id === myId) {
+                    setTimeout(() => {
+                        document.getElementById("tipp-info-szoveg").textContent = `Kipörgetett érték: ${data.result} pont. Kérhetsz egy betűt!`;
+                        document.getElementById("tipp-szekcio").classList.remove("hidden");
+                        document.getElementById("tipp-betu").focus();
+                    }, BEJELENTESI_SZUNET);
+                }
+            }
+        });
+
+        // --- TIPPELÉS ---
+        document.getElementById("tipp-kuld-btn").addEventListener("click", () => {
+            const tipp = document.getElementById("tipp-betu").value.toUpperCase().trim();
+            document.getElementById("tipp-betu").value = "";
+            if (tipp.length !== 1 || !/[A-ZÁÉÍÓÖŐÚÜŰ]/.test(tipp)) {
+                alert("Kérjük, egyetlen érvényes betűt adj meg!");
+                document.getElementById("tipp-betu").focus(); return;
+            }
+            document.getElementById("tipp-szekcio").classList.add("hidden");
+            socket.emit('guess_letter', { tipp, porgetesEredmeny: utolsoPorgetesResult });
+        });
+
+        document.getElementById("tipp-betu").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById("tipp-kuld-btn").click(); }
+        });
+
+        socket.on('guess_response', (data) => {
+            if (data.status === 'already_guessed') {
+                JatszHang("passz.mp3");
+                MonddKi(`Ezt a betűt már kitaláltátok! Figyelmetlenség miatt ez most passz, a következő játékos jön.`);
+            } else if (data.status === 'miss') {
+                JatszHang("nemtalalt.mp3");
+                MonddKi(`Sajnos a(z) ${data.tipp} betű nem szerepel a feladványban. A következő játékos jön.`);
+            } else if (data.status === 'hit') {
+                JatszHang("taps.mp3");
+                for(let i=0; i<data.talalatokSzama; i++) setTimeout(() => JatszHang("talalt.mp3"), i*500);
+                RenderszoMaszk(data.szoMaszkolva);
+                JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+                
+                if (!data.mindMegvan) {
+                    const nextV = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön újra`;
+                    MonddKi(`Talált! A(z) ${data.tipp} betű ${data.talalatokSzama} alkalommal szerepel. ${nextV}.`);
+                }
+            }
+        });
+
+        socket.on('turn_changed', (data) => {
+            JatekosKijelzoFrissitese(jatekosokCache, data.aktualisJatekos);
+            const nextV = data.aktualisJatekos.id === myId ? "Te következel! Pörgethetsz vagy megfejthetsz." : `Következik: ${data.aktualisJatekos.nev}.`;
+            MonddKi(nextV);
+        });
+
+        // --- MEGFEJTÉS & GYŐZELEM ---
+        document.getElementById("megfejt-btn").addEventListener("click", () => {
+            const tippMegfejtes = prompt("Írd be a teljes megfejtést:");
+            if (tippMegfejtes) socket.emit('solve_puzzle', tippMegfejtes);
+        });
+
+        socket.on('solve_failed', (data) => {
+            JatszHang("csod.mp3");
+            MonddKi(`Hibás megfejtés! ${data.jatekosNev} csődöt kapott, a következő játékos jön.`);
+        });
+
+        socket.on('round_won', (data) => {
+            JatszHang("megfejtette.mp3");
+            MonddKi(`Gratulálunk! ${data.nyertes.nev} megfejtette a feladványt!`);
+            RenderszoMaszk(data.teljesSzo);
+            jatekosokCache = data.jatekosok; 
+
+            // 1. GOMBOK AZONNALI LETILTÁSA
+            document.getElementById("porget-btn").disabled = true;
+            document.getElementById("megfejt-btn").disabled = true;
+            
+            document.getElementById("chat-szekcio").classList.remove("hidden");
+
+            // Győztesnek az indító gomb
+            if (data.nyertes.id === myId) {
+                document.getElementById("gyozelem-akciok").classList.remove("hidden");
+                document.getElementById("kovi-feladvany-btn").focus();
+            }
+
+            // 2. HA ÉN TÁVOL VAGYOK, MEGJELENIK A VISSZATÉRÉS GOMB
+            const en = data.jatekosok.find(j => j.id === myId);
+            if (en && en.tavolVan) {
+                document.getElementById("visszater-btn").classList.remove("hidden");
+            }
+        });
+
+        document.getElementById("kovi-feladvany-btn").addEventListener("click", () => {
+            socket.emit('next_random_puzzle');
+            document.getElementById("gyozelem-akciok").classList.add("hidden");
+        });
+
+        socket.on('atvezeto_inditasa', () => {
+            JatszHang("atvezeto.mp3");
+            document.getElementById("game-screen").classList.add("hidden");
+            document.getElementById("atvezeto-kepernyo").classList.remove("hidden");
+            MonddKi("Tíz másodperc várakozás következik. Az új feladvány betöltése folyamatban.");
+        });
+
+        document.getElementById("chat-kuld-btn").addEventListener("click", () => {
+            const msg = document.getElementById("chat-input").value.trim();
+            if(msg) { socket.emit('send_chat_message', msg); document.getElementById("chat-input").value = ""; }
+        });
+
+        document.getElementById("chat-input").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); document.getElementById("chat-kuld-btn").click(); }
+        });
+
+        socket.on('chat_message_received', (data) => {
+            JatszHang("pitty.mp3");
+            const list = document.getElementById("chat-messages");
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${data.nev}:</strong> ${data.uzenet}`;
+            list.prepend(li); 
+        });
+
+    </script>
+</body>
+</html>
