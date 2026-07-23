@@ -34,12 +34,10 @@
 <body>
 
     <section id="lobby-screen">
-        <h1>Szerencsekerék Hálózat</h1>
+        <h1>Szerencsekerék 0.4.3 beta</h1>
         
         <div class="fejlesztoi-szoveg">
             <p><strong>Készítette:</strong> Rauch Róbert</p>
-<p> Verzió: 0.4.2 BETA
-
             <p>A játék ezen verziója jelenleg tesztfázisban, úgynevezett beta állapotban van, így előfordulhatnak hibák, anomáliák a használat közben, ezekért előre is elnézést kérek. Az építő jellegű javaslatokat vagy a hibabejelentéseket szívesen várom az alábbi e-mail címre:</p>
             <p><a href="mailto:rauch33@gmail.com"><strong>rauch33@gmail.com</strong></a></p>
             <p><em>Jó játékot kívánok!</em></p>
@@ -254,7 +252,7 @@
             document.getElementById("game-screen").classList.remove("hidden");
             document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
             RenderszoMaszk(data.maszkoltSzoveg);
-            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, data.feladvanyKeszitoId);
         });
 
         function RenderszoMaszk(maszk) {
@@ -288,17 +286,25 @@
             }
         }
 
-        function JatekosKijelzoFrissitese(jatekosok, aktJatekos) {
+        function JatekosKijelzoFrissitese(jatekosok, aktJatekos, feladvanyKeszitoId) {
             jatekosokCache = jatekosok;
-            aktJatekosId = aktJatekos.id;
-            document.getElementById("aktualis-jatekos-neve").innerHTML = `Soron lévő játékos: <strong>${aktJatekos.nev}</strong>`;
+            aktJatekosId = aktJatekos ? aktJatekos.id : null;
+            
+            if (aktJatekos) {
+                document.getElementById("aktualis-jatekos-neve").innerHTML = `Soron lévő játékos: <strong>${aktJatekos.nev}</strong>`;
+            } else {
+                document.getElementById("aktualis-jatekos-neve").innerHTML = `Soron lévő játékos: <strong>Nincs aktív játékos</strong>`;
+            }
             
             const en = jatekosok.find(j => j.id === myId);
             if(en) {
                 document.getElementById("aktualis-jatekos-pontja").innerHTML = `Te pontjaid: Körben: <strong>${en.korPont}</strong> | Össz: <strong>${en.osszPont}</strong>`;
             }
 
-            const myTurn = (aktJatekos.id === myId);
+            // Ha ÉN voltam a feladvány feladója, tiltva vagyok ebben a körben
+            const enVagyokAFelado = (myId === feladvanyKeszitoId);
+            const myTurn = (aktJatekos && aktJatekos.id === myId && !enVagyokAFelado);
+            
             document.getElementById("porget-btn").disabled = !myTurn;
             document.getElementById("megfejt-btn").disabled = !myTurn;
         }
@@ -316,11 +322,16 @@
             
             document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
             RenderszoMaszk(data.maszkoltSzoveg);
-            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+            JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, data.feladvanyKeszitoId);
             
             JatszHang("feladvany.mp3");
-            const jovevoNeve = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön`;
-            MonddKi(`Új kör indult! A feladvány hossza ${data.maszkoltSzoveg.length} karakter. ${jovevoNeve}.`);
+            
+            if (myId === data.feladvanyKeszitoId) {
+                MonddKi(`Új kör indult! A feladvány hossza ${data.maszkoltSzoveg.length} karakter. Te adtad fel ezt a feladványt, így ebben a körben nem játszol.`);
+            } else {
+                const jovevoNeve = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön`;
+                MonddKi(`Új kör indult! A feladvány hossza ${data.maszkoltSzoveg.length} karakter. ${jovevoNeve}.`);
+            }
         });
 
         // --- BILLENTYŰZETI GYORSGOMBOK ---
@@ -371,7 +382,7 @@
         // --- VÉGLEGES KILÉPÉS ---
         document.getElementById("kilep-btn").addEventListener("click", () => {
             if(confirm("Biztosan ki szeretnél lépni a játékból és elhagyni a szobát? Végleg elveszíted az itteni pontjaidat!")) {
-                sessionStorage.removeItem('sk_myRoom'); // Töröljük a memóriából a szobát, így nem lép vissza magától
+                sessionStorage.removeItem('sk_myRoom'); 
                 socket.emit('leave_room');
                 
                 document.getElementById("game-screen").classList.add("hidden");
@@ -451,7 +462,7 @@
                 JatszHang("taps.mp3");
                 for(let i=0; i<data.talalatokSzama; i++) setTimeout(() => JatszHang("talalt.mp3"), i*500);
                 RenderszoMaszk(data.szoMaszkolva);
-                JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos);
+                JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, null);
                 
                 if (!data.mindMegvan) {
                     const nextV = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön újra`;
@@ -461,7 +472,7 @@
         });
 
         socket.on('turn_changed', (data) => {
-            JatekosKijelzoFrissitese(jatekosokCache, data.aktualisJatekos);
+            JatekosKijelzoFrissitese(jatekosokCache, data.aktualisJatekos, null);
             const nextV = data.aktualisJatekos.id === myId ? "Te következel! Pörgethetsz vagy megfejthetsz." : `Következik: ${data.aktualisJatekos.nev}.`;
             MonddKi(nextV);
         });
@@ -488,6 +499,15 @@
 
             if (data.nyertes.id === myId) {
                 document.getElementById("gyozelem-akciok").classList.remove("hidden");
+                
+                // HA CSAK 1 JÁTÉKOS VAN A SZOBA-BEN, ELREJTJÜK A SAJÁT FELADVÁNY GOMBOT!
+                const aktivJatekosokSzama = data.jatekosok.filter(j => !j.disconnected).length;
+                if (aktivJatekosokSzama <= 1) {
+                    document.getElementById("sajat-feladvany-btn").classList.add("hidden");
+                } else {
+                    document.getElementById("sajat-feladvany-btn").classList.remove("hidden");
+                }
+
                 document.getElementById("kovi-feladvany-btn").focus();
             }
 

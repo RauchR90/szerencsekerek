@@ -30,6 +30,7 @@ function getRoom(roomName) {
             jatekosok: [],
             aktualisJatekosIndex: 0,
             kivalasztottFeladvany: null,
+            feladvanyKeszitoId: null, // ÚJ: a feladványt feladó id-ja
             kitalaltBetuk: [],
             jatekMegy: false,
             feladvanyok: JSON.parse(JSON.stringify(alapFeladvanyok))
@@ -52,12 +53,17 @@ function KovetkezoJatekos(roomName) {
     const room = rooms[roomName];
     if (!room || room.jatekosok.length === 0) return;
     
-    const vanAktiv = room.jatekosok.some(j => !j.tavolVan && !j.disconnected);
+    // Csak azok játszhatnak, akik nincsenek távol, nincsenek offline, ÉS nem ők adták fel a feladványt
+    const vanAktiv = room.jatekosok.some(j => !j.tavolVan && !j.disconnected && j.id !== room.feladvanyKeszitoId);
     if (!vanAktiv) return; 
 
     do {
         room.aktualisJatekosIndex = (room.aktualisJatekosIndex + 1) % room.jatekosok.length;
-    } while (room.jatekosok[room.aktualisJatekosIndex].tavolVan || room.jatekosok[room.aktualisJatekosIndex].disconnected);
+    } while (
+        room.jatekosok[room.aktualisJatekosIndex].tavolVan || 
+        room.jatekosok[room.aktualisJatekosIndex].disconnected ||
+        room.jatekosok[room.aktualisJatekosIndex].id === room.feladvanyKeszitoId
+    );
     
     io.to(roomName).emit('turn_changed', { aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex] });
 }
@@ -92,7 +98,8 @@ io.on('connection', (socket) => {
                     jatekosok: room.jatekosok,
                     aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
                     kategoria: room.kivalasztottFeladvany.kategoria,
-                    maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk)
+                    maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk),
+                    feladvanyKeszitoId: room.feladvanyKeszitoId
                 });
             }
         }
@@ -106,6 +113,7 @@ io.on('connection', (socket) => {
         if (!room || room.jatekosok.length === 0) return;
         
         room.jatekMegy = true;
+        room.feladvanyKeszitoId = null; // Gép által adott feladvány
         room.jatekosok.forEach(j => { j.korPont = 0; });
         room.aktualisJatekosIndex = -1; 
         room.kitalaltBetuk = [];
@@ -118,7 +126,8 @@ io.on('connection', (socket) => {
             jatekosok: room.jatekosok,
             aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
             kategoria: room.kivalasztottFeladvany.kategoria,
-            maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk)
+            maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk),
+            feladvanyKeszitoId: room.feladvanyKeszitoId
         });
     });
 
@@ -191,7 +200,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- VÉGLEGES KILÉPÉS (ÚJ) ---
     socket.on('leave_room', () => {
         const roomName = socket.data.roomName;
         if (!roomName) return;
@@ -203,18 +211,16 @@ io.on('connection', (socket) => {
             const jatekosNev = room.jatekosok[pIndex].nev;
             const voltSoron = (room.jatekMegy && pIndex === room.aktualisJatekosIndex);
             
-            // Játékos végleges törlése a tömbből
             room.jatekosok.splice(pIndex, 1);
             socket.leave(roomName);
             delete socket.data.roomName; 
 
             if (room.jatekosok.length === 0) {
-                delete rooms[roomName]; // Ha mindenki kilépett, szoba törlése
+                delete rooms[roomName]; 
             } else {
                 io.to(roomName).emit('player_left_permanently', { nev: jatekosNev });
                 io.to(roomName).emit('lobby_update', room.jatekosok);
                 
-                // Ha ő volt soron, vagy előrébb volt a listában, index korrekció és léptetés
                 if (room.jatekMegy) {
                     if (voltSoron) {
                         room.aktualisJatekosIndex = pIndex - 1; 
@@ -228,7 +234,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- KIMARADÁS ÉS VISSZATÉRÉS ---
     socket.on('skip_turn', () => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
@@ -258,7 +263,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- SAJÁT FELADVÁNYOK ---
     socket.on('request_custom_puzzle', (celpontId) => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
@@ -273,7 +277,10 @@ io.on('connection', (socket) => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
         if (!room) return;
+        
         room.kivalasztottFeladvany = { kategoria: data.kategoria, szoveg: data.szoveg };
+        room.feladvanyKeszitoId = socket.id; // Bejegyezzük, hogy Ő adta fel a feladványt!
+        
         inditsdAzUjKort(roomName, room);
     });
 
@@ -281,7 +288,10 @@ io.on('connection', (socket) => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
         if (!room) return;
+        
         room.kivalasztottFeladvany = UjFeladvanySorsolasa(room);
+        room.feladvanyKeszitoId = null; // Gép által adott feladványnál nincs feladó
+        
         if(!room.kivalasztottFeladvany) return; 
         inditsdAzUjKort(roomName, room);
     });
@@ -291,22 +301,24 @@ io.on('connection', (socket) => {
         setTimeout(() => {
             room.jatekosok.forEach(j => { j.korPont = 0; });
             room.kitalaltBetuk = [];
+            room.aktualisJatekosIndex = -1;
             KovetkezoJatekos(roomName);
+            
             io.to(roomName).emit('game_started', {
-                jatekosok: room.jatekosok, aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
+                jatekosok: room.jatekosok, 
+                aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
                 kategoria: room.kivalasztottFeladvany.kategoria,
-                maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk)
+                maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk),
+                feladvanyKeszitoId: room.feladvanyKeszitoId
             });
         }, 10000);
     }
 
-    // Chat
     socket.on('send_chat_message', (msg) => {
         const roomName = socket.data.roomName;
         if (roomName) io.to(roomName).emit('chat_message_received', { nev: socket.data.nev, uzenet: msg });
     });
 
-    // --- SZAKADÁS (DISCONNECT) ---
     socket.on('disconnect', () => {
         const roomName = socket.data.roomName;
         if (roomName && rooms[roomName]) {
