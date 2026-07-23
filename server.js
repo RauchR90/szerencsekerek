@@ -14,6 +14,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'szerencsekerek.html'));
 });
 
+const rooms = {};
+const kerekMezok = [1000, 1000, 2000, 2000, 4000, 4000, 5000, 5000, 6000, 8000, 10000, 15000, 20000, "CSŐD", "PASSZ"];
 const alapFeladvanyok = [
     // Magyar költők, írók (10)
     { kategoria: "Magyar költő, író", szoveg: "PETŐFI SÁNDOR" }, { kategoria: "Magyar költő, író", szoveg: "ARANY JÁNOS" },
@@ -124,7 +126,7 @@ const alapFeladvanyok = [
     { kategoria: "Használati tárgy", szoveg: "FAZÉK" }, { kategoria: "Használati tárgy", szoveg: "TEPSI" },
     { kategoria: "Használati tárgy", szoveg: "KUKTA" }, { kategoria: "Használati tárgy", szoveg: "RESZELŐ" },
     { kategoria: "Használati tárgy", szoveg: "DUGÓHÚZÓ" }, { kategoria: "Használati tárgy", szoveg: "KONZERVNYITÓ" },
-    { kategoria: "Használati tárgy", szoveg: "HÚSCLOPFOLÓ" }
+    { kategoria: "Használati tárgy", szoveg: "HÚSKLOPFOLÓ" }
 ];
 
 function getRoom(roomName) {
