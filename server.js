@@ -52,9 +52,8 @@ function KovetkezoJatekos(roomName) {
     const room = rooms[roomName];
     if (!room || room.jatekosok.length === 0) return;
     
-    // Ellenőrizzük, van-e egyáltalán aktív játékos
     const vanAktiv = room.jatekosok.some(j => !j.tavolVan && !j.disconnected);
-    if (!vanAktiv) return; // Ha mindenki elment, megáll a léptetés
+    if (!vanAktiv) return; 
 
     do {
         room.aktualisJatekosIndex = (room.aktualisJatekosIndex + 1) % room.jatekosok.length;
@@ -68,34 +67,26 @@ io.on('connection', (socket) => {
     socket.on('join_room', (data) => {
         const szoba = String(data.szoba).trim().toLowerCase();
         const nev = String(data.nev).trim();
-        const sessionId = data.sessionId; // A kliens titkos azonosítója a visszacsatlakozáshoz
+        const sessionId = data.sessionId; 
 
         socket.join(szoba);
         socket.data.roomName = szoba;
         socket.data.nev = nev;
 
         const room = getRoom(szoba);
-        
         let jatekos = room.jatekosok.find(j => j.sessionId === sessionId);
         
         if (!jatekos) {
-            // Új belépő
             room.jatekosok.push({ 
                 id: socket.id, sessionId: sessionId, nev: nev, 
                 korPont: 0, osszPont: 0, tavolVan: false, disconnected: false 
             });
-            console.log(`[BELÉPÉS] ${nev} csatlakozott -> '${szoba}'`);
         } else {
-            // Visszacsatlakozó (Rejoin)
             jatekos.id = socket.id;
             jatekos.nev = nev;
             jatekos.disconnected = false;
-            console.log(`[VISSZATÉRT] ${nev} visszatért a(z) '${szoba}' szobába.`);
-            
-            // Értesítjük a többieket
             socket.to(szoba).emit('player_reconnected', { nev: nev });
             
-            // Leküldjük neki az aktuális játékállapotot
             if (room.jatekMegy && room.kivalasztottFeladvany) {
                 socket.emit('rejoin_game_state', {
                     jatekosok: room.jatekosok,
@@ -121,7 +112,7 @@ io.on('connection', (socket) => {
         room.kivalasztottFeladvany = UjFeladvanySorsolasa(room);
 
         if (!room.kivalasztottFeladvany) return;
-        KovetkezoJatekos(roomName); // Ráléptetjük az első aktív játékosra
+        KovetkezoJatekos(roomName); 
 
         io.to(roomName).emit('game_started', {
             jatekosok: room.jatekosok,
@@ -200,17 +191,53 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- KIMARADÁS ÉS VISSZATÉRÉS LOGIKA ---
+    // --- VÉGLEGES KILÉPÉS (ÚJ) ---
+    socket.on('leave_room', () => {
+        const roomName = socket.data.roomName;
+        if (!roomName) return;
+        const room = rooms[roomName];
+        if (!room) return;
+
+        const pIndex = room.jatekosok.findIndex(j => j.id === socket.id);
+        if (pIndex !== -1) {
+            const jatekosNev = room.jatekosok[pIndex].nev;
+            const voltSoron = (room.jatekMegy && pIndex === room.aktualisJatekosIndex);
+            
+            // Játékos végleges törlése a tömbből
+            room.jatekosok.splice(pIndex, 1);
+            socket.leave(roomName);
+            delete socket.data.roomName; 
+
+            if (room.jatekosok.length === 0) {
+                delete rooms[roomName]; // Ha mindenki kilépett, szoba törlése
+            } else {
+                io.to(roomName).emit('player_left_permanently', { nev: jatekosNev });
+                io.to(roomName).emit('lobby_update', room.jatekosok);
+                
+                // Ha ő volt soron, vagy előrébb volt a listában, index korrekció és léptetés
+                if (room.jatekMegy) {
+                    if (voltSoron) {
+                        room.aktualisJatekosIndex = pIndex - 1; 
+                        if (room.aktualisJatekosIndex < 0) room.aktualisJatekosIndex = room.jatekosok.length - 1;
+                        KovetkezoJatekos(roomName);
+                    } else if (pIndex < room.aktualisJatekosIndex) {
+                        room.aktualisJatekosIndex--;
+                    }
+                }
+            }
+        }
+    });
+
+    // --- KIMARADÁS ÉS VISSZATÉRÉS ---
     socket.on('skip_turn', () => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
         if (room) {
             const jatekos = room.jatekosok.find(j => j.id === socket.id);
             if(jatekos) {
-                jatekos.tavolVan = true; // Státusz megőrzése a körökön át
+                jatekos.tavolVan = true; 
                 io.to(roomName).emit('player_skipped', { jatekosNev: jatekos.nev });
                 io.to(roomName).emit('lobby_update', room.jatekosok);
-                // Csak akkor kell léptetni, ha épp ő volt soron
                 if (room.jatekosok[room.aktualisJatekosIndex].id === socket.id) {
                     KovetkezoJatekos(roomName);
                 }
@@ -224,20 +251,42 @@ io.on('connection', (socket) => {
         if (room) {
             const jatekos = room.jatekosok.find(j => j.id === socket.id);
             if(jatekos) {
-                jatekos.tavolVan = false; // Visszaállt aktívra
+                jatekos.tavolVan = false; 
                 io.to(roomName).emit('player_returned', { jatekosNev: jatekos.nev });
                 io.to(roomName).emit('lobby_update', room.jatekosok);
             }
         }
     });
 
-    // --- KÖVETKEZŐ KÖRÖK INDÍTÁSA ---
+    // --- SAJÁT FELADVÁNYOK ---
+    socket.on('request_custom_puzzle', (celpontId) => {
+        const roomName = socket.data.roomName;
+        const room = rooms[roomName];
+        if (!room) return;
+        const kero = room.jatekosok.find(j => j.id === socket.id);
+        if(kero) {
+            io.to(roomName).emit('custom_puzzle_delegated', { celpontId: celpontId, kerte: kero.nev });
+        }
+    });
+
+    socket.on('submit_custom_puzzle', (data) => {
+        const roomName = socket.data.roomName;
+        const room = rooms[roomName];
+        if (!room) return;
+        room.kivalasztottFeladvany = { kategoria: data.kategoria, szoveg: data.szoveg };
+        inditsdAzUjKort(roomName, room);
+    });
+
     socket.on('next_random_puzzle', () => {
         const roomName = socket.data.roomName;
         const room = rooms[roomName];
         if (!room) return;
         room.kivalasztottFeladvany = UjFeladvanySorsolasa(room);
         if(!room.kivalasztottFeladvany) return; 
+        inditsdAzUjKort(roomName, room);
+    });
+
+    function inditsdAzUjKort(roomName, room) {
         io.to(roomName).emit('atvezeto_inditasa');
         setTimeout(() => {
             room.jatekosok.forEach(j => { j.korPont = 0; });
@@ -249,7 +298,7 @@ io.on('connection', (socket) => {
                 maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk)
             });
         }, 10000);
-    });
+    }
 
     // Chat
     socket.on('send_chat_message', (msg) => {
@@ -257,25 +306,21 @@ io.on('connection', (socket) => {
         if (roomName) io.to(roomName).emit('chat_message_received', { nev: socket.data.nev, uzenet: msg });
     });
 
-    // --- SZAKADÁS (DISCONNECT) KEZELÉSE ---
+    // --- SZAKADÁS (DISCONNECT) ---
     socket.on('disconnect', () => {
         const roomName = socket.data.roomName;
         if (roomName && rooms[roomName]) {
             const room = rooms[roomName];
             const jatekos = room.jatekosok.find(j => j.id === socket.id);
             if (jatekos) {
-                jatekos.disconnected = true; // Nem töröljük, csak megjelöljük offline-nak
-                console.log(`[KILÉPETT] ${jatekos.nev} kapcsolata megszakadt.`);
-                
+                jatekos.disconnected = true; 
                 io.to(roomName).emit('player_disconnected', { nev: jatekos.nev });
                 io.to(roomName).emit('lobby_update', room.jatekosok);
 
-                // Ha ő jött volna, ugrunk egyet
                 if (room.jatekMegy && room.jatekosok[room.aktualisJatekosIndex] && room.jatekosok[room.aktualisJatekosIndex].id === socket.id) {
                     KovetkezoJatekos(roomName);
                 }
 
-                // Ha mindenki offline, takarítsuk ki a szobát a memóriából
                 const mindenkiOffline = room.jatekosok.every(j => j.disconnected);
                 if (mindenkiOffline) delete rooms[roomName];
             }
