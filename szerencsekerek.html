@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Szerencsekerék</title>
+    <title>Szerencsekerék Multiplayer - v1.9 (Beta)</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; line-height: 1.6; }
@@ -27,6 +27,7 @@
         .info-szekcio { background-color: #f8f9fa; border: 2px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
         .fejlesztoi-szoveg { background-color: #e9ecef; border-left: 5px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 3px; }
         
+        /* MODAL ABLAKOK STÍLUSA */
         .modal-hatter { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-tartalom { background: #fff; padding: 25px; border-radius: 8px; max-width: 700px; max-height: 80vh; overflow-y: auto; border: 3px solid #007bff; }
     </style>
@@ -34,7 +35,7 @@
 <body>
 
     <section id="lobby-screen">
-        <h1>Szerencsekerék 0.4.3 beta</h1>
+        <h1>Szerencsekerék Hálózat</h1>
         
         <div class="fejlesztoi-szoveg">
             <p><strong>Készítette:</strong> Rauch Róbert</p>
@@ -88,6 +89,19 @@
             <p>A szoftver <em>"ahogy van"</em> (AS IS) alapon áll a felhasználók rendelkezésére. A fejlesztő nem vállal jogi vagy anyagi felelősséget a szoftver használatából, esetleges üzemkimaradásokból vagy technikai hibákból eredő közvetlen vagy közvetett károkért.</p>
             <hr>
             <button id="jogi-bezar-btn" style="background-color: #28a745; width: 100%;">Bezárás (Vissza a játékhoz)</button>
+        </div>
+    </div>
+
+    <!-- AKADÁLYMENTES MEGFEJTŐ MODAL ABLAK (AKADÁLYOZZA A DISCONNECT-ET) -->
+    <div id="megfejtes-modal" class="modal-hatter hidden" role="dialog" aria-labelledby="megfejtes-cimsor" aria-modal="true">
+        <div class="modal-tartalom" style="border-color: #28a745;">
+            <h2 id="megfejtes-cimsor" tabindex="-1">Megfejtés beírása</h2>
+            <p>Írd be a teljes megfejtést! (Nem gond, ha lassan gépelsz, a kapcsolat nem fog megszakadni).</p>
+            <label for="megfejtes-input" class="hidden">Teljes megfejtés:</label>
+            <input type="text" id="megfejtes-input" style="width: 100%; font-size: 20px; margin-bottom: 15px;" placeholder="Pl: PETŐFI SÁNDOR" autocomplete="off">
+            <br>
+            <button id="megfejtes-kuld-btn" style="background-color: #28a745; margin-right: 10px;">Megfejtés elküldése 💡</button>
+            <button id="megfejtes-megse-btn" style="background-color: #6c757d;">Mégse (Esc)</button>
         </div>
     </div>
 
@@ -166,14 +180,53 @@
         const kerekBejelento = document.getElementById("kerek-bejelento");
         const BEJELENTESI_SZUNET = 2000; 
 
+        // MODALOK
         const jogiBtn = document.getElementById("jogi-btn");
         const jogiModal = document.getElementById("jogi-modal");
         const jogiBezarBtn = document.getElementById("jogi-bezar-btn");
         const jogiCimsor = document.getElementById("jogi-cimsor");
 
+        const megfejtesModal = document.getElementById("megfejtes-modal");
+        const megfejtesCimsor = document.getElementById("megfejtes-cimsor");
+        const megfejtesInput = document.getElementById("megfejtes-input");
+        const megfejtesKuldBtn = document.getElementById("megfejtes-kuld-btn");
+        const megfejtesMegseBtn = document.getElementById("megfejtes-megse-btn");
+
         jogiBtn.addEventListener("click", () => { jogiModal.classList.remove("hidden"); jogiCimsor.focus(); });
         function BezarJogiModal() { jogiModal.classList.add("hidden"); jogiBtn.focus(); }
         jogiBezarBtn.addEventListener("click", BezarJogiModal);
+
+        function NyitMegfejtesModal() {
+            megfejtesInput.value = "";
+            megfejtesModal.classList.remove("hidden");
+            megfejtesCimsor.focus();
+            setTimeout(() => megfejtesInput.focus(), 100);
+        }
+
+        function BezarMegfejtesModal() {
+            megfejtesModal.classList.add("hidden");
+            document.getElementById("megfejt-btn").focus();
+        }
+
+        megfejtesMegseBtn.addEventListener("click", BezarMegfejtesModal);
+
+        megfejtesKuldBtn.addEventListener("click", () => {
+            const tipp = megfejtesInput.value.trim();
+            if(tipp) {
+                socket.emit('solve_puzzle', tipp);
+                BezarMegfejtesModal();
+            } else {
+                alert("Kérlek, írj be egy megfejtést!");
+                megfejtesInput.focus();
+            }
+        });
+
+        megfejtesInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                megfejtesKuldBtn.click();
+            }
+        });
 
         window.onload = () => {
             mySessionId = sessionStorage.getItem('sk_sessionId');
@@ -301,7 +354,6 @@
                 document.getElementById("aktualis-jatekos-pontja").innerHTML = `Te pontjaid: Körben: <strong>${en.korPont}</strong> | Össz: <strong>${en.osszPont}</strong>`;
             }
 
-            // Ha ÉN voltam a feladvány feladója, tiltva vagyok ebben a körben
             const enVagyokAFelado = (myId === feladvanyKeszitoId);
             const myTurn = (aktJatekos && aktJatekos.id === myId && !enVagyokAFelado);
             
@@ -336,8 +388,9 @@
 
         // --- BILLENTYŰZETI GYORSGOMBOK ---
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && !jogiModal.classList.contains("hidden")) {
-                BezarJogiModal(); return;
+            if (e.key === "Escape") {
+                if (!jogiModal.classList.contains("hidden")) { BezarJogiModal(); return; }
+                if (!megfejtesModal.classList.contains("hidden")) { BezarMegfejtesModal(); return; }
             }
 
             if (document.getElementById("game-screen").classList.contains("hidden")) return;
@@ -379,7 +432,6 @@
             }
         });
 
-        // --- VÉGLEGES KILÉPÉS ---
         document.getElementById("kilep-btn").addEventListener("click", () => {
             if(confirm("Biztosan ki szeretnél lépni a játékból és elhagyni a szobát? Végleg elveszíted az itteni pontjaidat!")) {
                 sessionStorage.removeItem('sk_myRoom'); 
@@ -477,9 +529,9 @@
             MonddKi(nextV);
         });
 
+        // MEGFEJTÉS GOMB KATTINTÁS (ÚJ, NON-BLOCKING MODAL)
         document.getElementById("megfejt-btn").addEventListener("click", () => {
-            const tippMegfejtes = prompt("Írd be a teljes megfejtést:");
-            if (tippMegfejtes) socket.emit('solve_puzzle', tippMegfejtes);
+            NyitMegfejtesModal();
         });
 
         socket.on('solve_failed', (data) => {
@@ -500,7 +552,6 @@
             if (data.nyertes.id === myId) {
                 document.getElementById("gyozelem-akciok").classList.remove("hidden");
                 
-                // HA CSAK 1 JÁTÉKOS VAN A SZOBA-BEN, ELREJTJÜK A SAJÁT FELADVÁNY GOMBOT!
                 const aktivJatekosokSzama = data.jatekosok.filter(j => !j.disconnected).length;
                 if (aktivJatekosokSzama <= 1) {
                     document.getElementById("sajat-feladvany-btn").classList.add("hidden");
