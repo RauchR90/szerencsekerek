@@ -11,7 +11,8 @@
         #feladvany-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px; }
         .betu-blokk { width: 40px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-bottom: 4px solid #333; background-color: #fff; cursor: pointer; }
         .betu-blokk:focus { outline: 3px solid #0056b3; background-color: #e1f5fe; }
-        .szokoz-blokk { width: 30px; height: 50px; border-bottom: none; background-color: transparent; }
+        .szokoz-blokk { width: 30px; height: 50px; border-bottom: none; background-color: transparent; cursor: pointer; }
+        .szokoz-blokk:focus { outline: 2px dashed #0056b3; background-color: #e9ecef; }
         button, input, a.gomb-link { font-size: 18px; padding: 10px; margin: 5px 0; border-radius: 5px; display: inline-block; text-decoration: none;}
         button, a.gomb-link { cursor: pointer; background-color: #007bff; color: white; border: none; text-align: center; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
@@ -30,12 +31,25 @@
         /* MODAL ABLAKOK STÍLUSA */
         .modal-hatter { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-tartalom { background: #fff; padding: 25px; border-radius: 8px; max-width: 700px; max-height: 80vh; overflow-y: auto; border: 3px solid #007bff; }
+        
+        /* KÉPERNYŐOLVASÓ-SPECIFIKUS REJTETT SZÖVEG (JAWS ÉS NVDA SZÁMÁRA) */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
 </head>
 <body>
 
     <section id="lobby-screen">
-        <h1>Szerencsekerék 0.4.4 Beta</h1>
+        <h1>Szerencsekerék V0.4.5 BETA</h1>
         
         <div class="fejlesztoi-szoveg">
             <p><strong>Készítette:</strong> Rauch Róbert</p>
@@ -56,7 +70,7 @@
             
             <hr style="margin: 15px 0;">
             <button id="jogi-btn" style="background-color: #6c757d; font-size: 15px;">📜 Jogi nyilatkozat és feltételek</button>
-            <a href="szerencsekerek0.6setup.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;"> Offline telepítő letöltése (.exe)</a>
+            <a href="szerencsekerek_telepito.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;">💾 Offline telepítő letöltése (.exe)</a>
         </div>
         
         <div id="lobby-players" class="hidden info-szekcio">
@@ -76,15 +90,15 @@
     <!-- JOGI MODAL -->
     <div id="jogi-modal" class="modal-hatter hidden" role="dialog" aria-labelledby="jogi-cimsor" aria-modal="true">
         <div class="modal-tartalom">
-            <h2 id="jogi-cimsor" tabindex="-1">JOGI NYILATKOZAT ÉS FELHASZNÁLÁSI FELTÉTELEK</h2>
-            <h3>1. A projekt célja</h3>
-            <p>Ez a webes alkalmazás egy <strong>nem kereskedelmi, nonprofit rajongói és oktatási projekt</strong>. A fejlesztés legfőbb és elsődleges célja, hogy a népszerű <em>Szerencsekerék</em> televíziós vetélkedőt a képernyőolvasó szoftvereket használó <strong>vak és gyengénlátó felhasználók számára is hozzáférhetővé és akadálymentesen játszhatóvá tegye</strong>.</p>
+            <h2 id="jogi-cimsor" tabindex="-1">JOGI NYILATKOZAT ÉS FELHASZNÁLÁSI FETÉTELEK</h2>
+            <h3>1. A projekt célja és az akadálymentesítés</h3>
+            <p>Ez a webes alkalmazás egy <strong>nem kereskedelmi, nonprofit rajongói és oktatási projekt</strong>. A fejlesztés legfőbb és elsődleges célja, hogy a népszerű <em>Szerencsekerék</em> televíziós vetélkedő élményét a képernyőolvasó szoftvereket (NVDA, JAWS stb.) használó <strong>vak és gyengénlátó felhasználók számára is 100%-ban hozzáférhetővé és akadálymentesen játszhatóvá tegye</strong>.</p>
             <p>Bár a játékból léteznek fizikai, mechanikus társasjáték-változatok, azok a látássérült emberek számára nem akadálymentesek, hiszen a táblák, kártyák és feliratok vakon nem olvashatóak. Jelen szoftver ezt az akadályt hidalja át digitális technológiák segítségével.</p>
             <h3>2. Szerzői jogok és védjegyek</h3>
             <p>A játék alapjául szolgáló <em>Szerencsekerék</em> televíziós vetélkedő eredeti formátuma (<em>Wheel of Fortune</em>, megalkotója Merv Griffin) a <strong>Sony Pictures Television</strong>, valamint a mindenkori jogtulajdonosok és licencek birtokosainak kizárólagos szellemi tulajdonát képezi (Magyarországon a licencelt televíziós műsorok és formátumok mindenkori jogtulajdonosait illeti a jog).</p>
-            <p>A játék során felhangzó hangeffektek, szignálok és zenei bejátszások az eredeti jogtulajdonosok és jogutódaik tulajdonát képezik. Az alkalmazásban kizárólag az autentikus játékélmény biztosítása és az akusztikus visszacsatolás céljából szólalnak meg.</p>
+            <p>A játék során felhangzó hangeffektek, szignálok és zenei bejátszások az eredeti jogtulajdonosok és jogutódaik tulajdonát képezik. Az alkalmazásban kizárólag az autentikus játékélmény biztosítása és az akusztikus visszacsatolás (a vak felhasználók tájékozódásának segítése) céljából szólalnak meg.</p>
             <h3>3. Nonprofit jelleg és kereskedelmi használat tilalma</h3>
-            <p>A szoftver használata <strong>teljesen ingyenes</strong>, a fejlesztő a szolgáltatásért semmilyen díjra vagy anyagi ellenszolgáltatásra igényt nem tart, abban hirdetések, mikrotranzakciók vagy egyéb bevételszerzési mechanizmusok nem találhatók. A projekt és annak forráskódja <strong>kereskedelmi forgalomba nem hozható</strong>, pénzért nem értékesíthető, és egyéb üzleti célra fel nem használható.</p>
+            <p>A szoftver használata <strong>teljesen ingyenes</strong>, a fejlesztő a szolgáltatásért semmilyen díjat nem szed, abban hirdetések, mikrotanzakciók vagy egyéb bevételszerzési mechanizmusok nem találhatók. A projekt és annak forráskódja <strong>kereskedelmi forgalomba nem hozható</strong>, pénzért nem értékesíthető, és egyéb üzleti célra fel nem használható.</p>
             <h3>4. Felelősségkorlátozás</h3>
             <p>A szoftver <em>"ahogy van"</em> (AS IS) alapon áll a felhasználók rendelkezésére. A fejlesztő nem vállal jogi vagy anyagi felelősséget a szoftver használatából, esetleges üzemkimaradásokból vagy technikai hibákból eredő közvetlen vagy közvetett károkért.</p>
             <hr>
@@ -92,11 +106,11 @@
         </div>
     </div>
 
-    <!-- AKADÁLYMENTES MEGFEJTŐ MODAL ABLAK (AKADÁLYOZZA A DISCONNECT-ET) -->
+    <!-- AKADÁLYMENTES MEGFEJTŐ MODAL ABLAK -->
     <div id="megfejtes-modal" class="modal-hatter hidden" role="dialog" aria-labelledby="megfejtes-cimsor" aria-modal="true">
         <div class="modal-tartalom" style="border-color: #28a745;">
             <h2 id="megfejtes-cimsor" tabindex="-1">Megfejtés beírása</h2>
-            <p>Írd be a teljes megfejtést! </p>
+            <p>Írd be a teljes megfejtést! .</p>
             <label for="megfejtes-input" class="hidden">Teljes megfejtés:</label>
             <input type="text" id="megfejtes-input" style="width: 100%; font-size: 20px; margin-bottom: 15px;" placeholder="Pl: PETŐFI SÁNDOR" autocomplete="off">
             <br>
@@ -308,6 +322,7 @@
             JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, data.feladvanyKeszitoId);
         });
 
+        // --- AKADÁLYMENTES SZÓMASZK RENDEREZÉS (JAWS ÉS NVDA TÁMOGATÁSSAL) ---
         function RenderszoMaszk(maszk) {
             const kontener = document.getElementById("feladvany-container");
             kontener.innerHTML = "";
@@ -318,7 +333,10 @@
 
                 if (char === " ") {
                     div.className = "szokoz-blokk";
+                    div.tabIndex = 0;
+                    div.setAttribute("role", "text");
                     div.setAttribute("aria-label", `${sorszam}. hely: Szóköz`);
+                    div.innerHTML = `<span class="sr-only">Szóköz</span>`;
                 } else {
                     div.className = "betu-blokk";
                     div.tabIndex = 0;
@@ -509,7 +527,7 @@
                 MonddKi(`Ezt a betűt már kitaláltátok! Figyelmetlenség miatt ez most passz, a következő játékos jön.`);
             } else if (data.status === 'miss') {
                 JatszHang("nemtalalt.mp3");
-                MonddKi(`Sajnos a(z) ${data.tipp} betű nem szerepel a feladványban.`);
+                MonddKi(`Sajnos a(z) ${data.tipp} betű nem szerepel a feladványban. A következő játékos jön.`);
             } else if (data.status === 'hit') {
                 JatszHang("taps.mp3");
                 for(let i=0; i<data.talalatokSzama; i++) setTimeout(() => JatszHang("talalt.mp3"), i*500);
@@ -529,7 +547,6 @@
             MonddKi(nextV);
         });
 
-        // MEGFEJTÉS GOMB KATTINTÁS (ÚJ, NON-BLOCKING MODAL)
         document.getElementById("megfejt-btn").addEventListener("click", () => {
             NyitMegfejtesModal();
         });
