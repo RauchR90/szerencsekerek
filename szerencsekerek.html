@@ -49,10 +49,11 @@
 <body>
 
     <section id="lobby-screen">
-        <h1>Szerencsekerék V0.4.5 BETA</h1>
+        <h1>Szerencsekerék V0.4.6 BETA</h1>
         
         <div class="fejlesztoi-szoveg">
             <p><strong>Készítette:</strong> Rauch Róbert</p>
+<p>A legutóbbi frissítésben kibővítésre került a beépített feladvány-adatbázis, és kijavításra került egy hiba, melynek előfordulásakor egy megfejtést követően nem volt lehetséges új kört indítani. <p>
             <p>A játék ezen verziója jelenleg tesztfázisban, úgynevezett beta állapotban van, így előfordulhatnak hibák, anomáliák a használat közben, ezekért előre is elnézést kérek. Az építő jellegű javaslatokat vagy a hibabejelentéseket szívesen várom az alábbi e-mail címre:</p>
             <p><a href="mailto:rauch33@gmail.com"><strong>rauch33@gmail.com</strong></a></p>
             <p><em>Jó játékot kívánok!</em></p>
@@ -70,7 +71,7 @@
             
             <hr style="margin: 15px 0;">
             <button id="jogi-btn" style="background-color: #6c757d; font-size: 15px;">📜 Jogi nyilatkozat és feltételek</button>
-            <a href="szerencsekerek0.7setup.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;">Offline telepítő letöltése (.exe)</a>
+            <a href="szerencsekerek0.7setup.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;">Offline verzió letöltése (Windows X64)</a>
         </div>
         
         <div id="lobby-players" class="hidden info-szekcio">
@@ -190,6 +191,7 @@
         let utolsoPorgetesResult = null;
         let aktJatekosId = null;
         let jatekosokCache = []; 
+        let feladvanyKeszitoIdCache = null;
 
         const kerekBejelento = document.getElementById("kerek-bejelento");
         const BEJELENTESI_SZUNET = 2000; 
@@ -299,7 +301,7 @@
                 else if (j.tavolVan) statusz = " [TÁVOL]";
                 
                 const li = document.createElement("li");
-                li.textContent = j.nev + (j.id === myId ? " (Te)" : "") + statusz;
+                li.textContent = j.nev + ((j.sessionId && j.sessionId === mySessionId) || j.id === myId ? " (Te)" : "") + statusz;
                 list.appendChild(li);
             });
             if(jatekosok.length > 0) document.getElementById("start-game-btn").classList.remove("hidden");
@@ -358,6 +360,9 @@
         }
 
         function JatekosKijelzoFrissitese(jatekosok, aktJatekos, feladvanyKeszitoId) {
+            if (feladvanyKeszitoId !== undefined) {
+                feladvanyKeszitoIdCache = feladvanyKeszitoId;
+            }
             jatekosokCache = jatekosok;
             aktJatekosId = aktJatekos ? aktJatekos.id : null;
             
@@ -367,13 +372,13 @@
                 document.getElementById("aktualis-jatekos-neve").innerHTML = `Soron lévő játékos: <strong>Nincs aktív játékos</strong>`;
             }
             
-            const en = jatekosok.find(j => j.id === myId);
+            const en = jatekosok.find(j => (j.sessionId && j.sessionId === mySessionId) || j.id === myId);
             if(en) {
                 document.getElementById("aktualis-jatekos-pontja").innerHTML = `Te pontjaid: Körben: <strong>${en.korPont}</strong> | Össz: <strong>${en.osszPont}</strong>`;
             }
 
-            const enVagyokAFelado = (myId === feladvanyKeszitoId);
-            const myTurn = (aktJatekos && aktJatekos.id === myId && !enVagyokAFelado);
+            const enVagyokAFelado = (myId === feladvanyKeszitoIdCache);
+            const myTurn = (aktJatekos && ((aktJatekos.sessionId && aktJatekos.sessionId === mySessionId) || aktJatekos.id === myId) && !enVagyokAFelado);
             
             document.getElementById("porget-btn").disabled = !myTurn;
             document.getElementById("megfejt-btn").disabled = !myTurn;
@@ -532,18 +537,20 @@
                 JatszHang("taps.mp3");
                 for(let i=0; i<data.talalatokSzama; i++) setTimeout(() => JatszHang("talalt.mp3"), i*500);
                 RenderszoMaszk(data.szoMaszkolva);
-                JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, null);
+                JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, feladvanyKeszitoIdCache);
                 
                 if (!data.mindMegvan) {
-                    const nextV = data.aktualisJatekos.id === myId ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön újra`;
+                    const isMyTurn = (data.aktualisJatekos.sessionId && data.aktualisJatekos.sessionId === mySessionId) || data.aktualisJatekos.id === myId;
+                    const nextV = isMyTurn ? "Te jössz! Pörgethetsz vagy megfejthetsz" : `${data.aktualisJatekos.nev} jön újra`;
                     MonddKi(`Talált! A(z) ${data.tipp} betű ${data.talalatokSzama} alkalommal szerepel. ${nextV}.`);
                 }
             }
         });
 
         socket.on('turn_changed', (data) => {
-            JatekosKijelzoFrissitese(jatekosokCache, data.aktualisJatekos, null);
-            const nextV = data.aktualisJatekos.id === myId ? "Te következel! Pörgethetsz vagy megfejthetsz." : `Következik: ${data.aktualisJatekos.nev}.`;
+            JatekosKijelzoFrissitese(jatekosokCache, data.aktualisJatekos, data.feladvanyKeszitoId);
+            const isMyTurn = (data.aktualisJatekos.sessionId && data.aktualisJatekos.sessionId === mySessionId) || data.aktualisJatekos.id === myId;
+            const nextV = isMyTurn ? "Te következel! Pörgethetsz vagy megfejthetsz." : `Következik: ${data.aktualisJatekos.nev}.`;
             MonddKi(nextV);
         });
 
@@ -564,9 +571,14 @@
 
             document.getElementById("porget-btn").disabled = true;
             document.getElementById("megfejt-btn").disabled = true;
+            document.getElementById("tipp-szekcio").classList.add("hidden");
+            document.getElementById("sajat-feladvany-szekcio").classList.add("hidden");
+            document.getElementById("jatekos-valaszto-szekcio").classList.add("hidden");
             document.getElementById("chat-szekcio").classList.remove("hidden");
 
-            if (data.nyertes.id === myId) {
+            const enNyertem = (data.nyertes.sessionId && data.nyertes.sessionId === mySessionId) || data.nyertes.id === myId;
+
+            if (enNyertem) {
                 document.getElementById("gyozelem-akciok").classList.remove("hidden");
                 
                 const aktivJatekosokSzama = data.jatekosok.filter(j => !j.disconnected).length;
@@ -579,7 +591,7 @@
                 document.getElementById("kovi-feladvany-btn").focus();
             }
 
-            const en = data.jatekosok.find(j => j.id === myId);
+            const en = data.jatekosok.find(j => (j.sessionId && j.sessionId === mySessionId) || j.id === myId);
             if (en && en.tavolVan) {
                 document.getElementById("visszater-btn").classList.remove("hidden");
             }

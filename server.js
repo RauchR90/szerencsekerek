@@ -126,7 +126,120 @@ const alapFeladvanyok = [
     { kategoria: "Használati tárgy", szoveg: "FAZÉK" }, { kategoria: "Használati tárgy", szoveg: "TEPSI" },
     { kategoria: "Használati tárgy", szoveg: "KUKTA" }, { kategoria: "Használati tárgy", szoveg: "RESZELŐ" },
     { kategoria: "Használati tárgy", szoveg: "DUGÓHÚZÓ" }, { kategoria: "Használati tárgy", szoveg: "KONZERVNYITÓ" },
-    { kategoria: "Használati tárgy", szoveg: "HÚSKLOPFOLÓ" }
+    { kategoria: "Használati tárgy", szoveg: "HÚSKLOPFOLÓ" },
+
+    // Közmondás vagy szólás (50)
+    { kategoria: "Közmondás vagy szólás", szoveg: "AJÁNDÉK LÓNAK NE NÉZD A FOGÁT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "AKI KÍVÁNCSI HAMAR MEGÖREGSZIK" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "SOK LÚD DISZNÓT GYŐZ" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NEM MIND ARANY AMI FÉNYLIK" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "JOBB KÉSŐN MINT SOHA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "ADDIG ÜSD A VASAT AMÍG MELEG" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "EGY FECSKE NEM CSINÁL NYARAT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "AKINEK NEM INGE NE VEGYE MAGÁRA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "AMILYEN AZ ADJONISTEN OLYAN A FOGADJISTEN" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "CSALÁNBA NEM ÜT A MENNYKŐ" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "EGYIK SZEMEM SÍR A MÁSIK NEVET" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "HA LÓ NINCS A SZAMÁR IS JÓ" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "HALLGATNI ARANY" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "LASSÚ VÍZ PARTOT MOS" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "MADARAT TOLLÁRÓL EMBERT BARÁTJÁRÓL" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "MINDEN CSODA HÁROM NAPIG TART" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NE IGYÁL ELŐRE A MEDVE BŐRÉRE" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NEM ESIK MESSZE AZ ALMA A FÁJÁTÓL" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NEM LÁTJA A FÁTÓL AZ ERDŐT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NYUGTÁVAL DICSÉRD A NAPOT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "OKOS ENGED SZAMÁR SZENVED" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "AZ ÖRDÖG NEM ALSZIK" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "PÉNZ BESZÉL KUTYA UGAT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "SEGÍTS MAGADON AZ ISTEN IS MEGSEGÍT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "SOK BÁBA KÖZT ELVESZ A GYERMEK" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "SZÉGYEN A FUTÁS DE HASZNOS" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "TÖBB SZEM TÖBBET LÁT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "TÜRELEM RÓZSÁT TEREM" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "ÚGY ÉL MINT HAL A VÍZBEN" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "VAKOK KÖZÖTT FÉLSZEMŰ A KIRÁLY" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "ZAVAROS VÍZBEN HALÁSZIK" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "A KOCKA EL VAN VETVE" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "AKI MÁSNAK VERMET ÁS MAGA ESIK BELE" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "A REMÉNY HAL MEG UTOLJÁRA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "KÖZÖS LÓNAK TÚRÓS A HÁTA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "KUTYÁBÓL NEM LESZ SZALONNA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "MINDEN JÓ HA A VÉGE JÓ" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NEM ZÖRÖG A HARASZT HA NEM FÚJJA A SZÉL" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "KICSI A BORS DE ERŐS" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NAGY FÁBA VÁGJA A FEJSZÉJÉT" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "NAGY KŐ ESETT LE A SZÍVÉRŐL" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "KIBÚJIK A SZÖG A ZSÁKBÓL" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "KÉT LEGYET ÜT EGY CSAPÁSRA" },
+    { kategoria: "Közmondás vagy szólás", szoveg: "A LEVEGŐBE BESZÉL" },
+
+    // Híres magyar személy (35)
+    { kategoria: "Híres magyar személy", szoveg: "SZÉCHENYI ISTVÁN" },
+    { kategoria: "Híres magyar személy", szoveg: "KOSSUTH LAJOS" },
+    { kategoria: "Híres magyar személy", szoveg: "DEÁK FERENC" },
+    { kategoria: "Híres magyar személy", szoveg: "HUNYADI MÁTYÁS" },
+    { kategoria: "Híres magyar személy", szoveg: "SZENT ISTVÁN KIRÁLY" },
+    { kategoria: "Híres magyar személy", szoveg: "HUNYADI JÁNOS" },
+    { kategoria: "Híres magyar személy", szoveg: "RÁKÓCZI FERENC" },
+    { kategoria: "Híres magyar személy", szoveg: "KODÁLY ZOLTÁN" },
+    { kategoria: "Híres magyar személy", szoveg: "BARTÓK BÉLA" },
+    { kategoria: "Híres magyar személy", szoveg: "RUBIK ERNŐ" },
+    { kategoria: "Híres magyar személy", szoveg: "PUSKÁS FERENC" },
+    { kategoria: "Híres magyar személy", szoveg: "SEMMELWEIS IGNÁC" },
+    { kategoria: "Híres magyar személy", szoveg: "EÖTVÖS LORÁND" },
+    { kategoria: "Híres magyar személy", szoveg: "NEUMANN JÁNOS" },
+    { kategoria: "Híres magyar személy", szoveg: "KARIKÓ KATALIN" },
+    { kategoria: "Híres magyar személy", szoveg: "SZENTGYÖRGYI ALBERT" },
+    { kategoria: "Híres magyar személy", szoveg: "ZRÍNYI MIKLÓS" },
+    { kategoria: "Híres magyar személy", szoveg: "ZRÍNYI ILONA" },
+    { kategoria: "Híres magyar személy", szoveg: "DOBÓ ISTVÁN" },
+    { kategoria: "Híres magyar személy", szoveg: "MUNKÁCSY MIHÁLY" },
+    { kategoria: "Híres magyar személy", szoveg: "LISZT FERENC" },
+    { kategoria: "Híres magyar személy", szoveg: "ERKEL FERENC" },
+    { kategoria: "Híres magyar személy", szoveg: "BLAHA LUJZA" },
+    { kategoria: "Híres magyar személy", szoveg: "JEDLIK ÁNYOS" },
+    { kategoria: "Híres magyar személy", szoveg: "KANDÓ KÁLMÁN" },
+    { kategoria: "Híres magyar személy", szoveg: "GANZ ÁBRAHÁM" },
+    { kategoria: "Híres magyar személy", szoveg: "GÖRGEI ARTÚR" },
+    { kategoria: "Híres magyar személy", szoveg: "KŐRÖSI CSOMA SÁNDOR" },
+    { kategoria: "Híres magyar személy", szoveg: "WIGNER JENŐ" },
+    { kategoria: "Híres magyar személy", szoveg: "GÁBOR DÉNES" },
+    { kategoria: "Híres magyar személy", szoveg: "SZENT LÁSZLÓ KIRÁLY" },
+    { kategoria: "Híres magyar személy", szoveg: "BÁTHORY ERZSÉBET" },
+
+    // Történelmi esemény (35)
+    { kategoria: "Történelmi esemény", szoveg: "HONFOGLALÁS" },
+    { kategoria: "Történelmi esemény", szoveg: "A MUHI CSATA" },
+    { kategoria: "Történelmi esemény", szoveg: "A MOHÁCSI VÉSZ" },
+    { kategoria: "Történelmi esemény", szoveg: "EGER OSTROMA" },
+    { kategoria: "Történelmi esemény", szoveg: "NÁNDORFEHÉRVÁRI DIADAL" },
+    { kategoria: "Történelmi esemény", szoveg: "MARATHONI CSATA" },
+    { kategoria: "Történelmi esemény", szoveg: "WATERLOOI CSATA" },
+    { kategoria: "Történelmi esemény", szoveg: "A BERLINI FAL LEOMLÁSA" },
+    { kategoria: "Történelmi esemény", szoveg: "A FRANCIA FORRADALOM" },
+    { kategoria: "Történelmi esemény", szoveg: "A TRIANONI BÉKESZERZŐDÉS" },
+    { kategoria: "Történelmi esemény", szoveg: "A RÁKÓCZI SZABADSÁGHARC" },
+    { kategoria: "Történelmi esemény", szoveg: "A BÉCSI KONGRESSZUS" },
+    { kategoria: "Történelmi esemény", szoveg: "AMERIKAI FÜGGETLENSÉGI HÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "IPARI FORRADALOM" },
+    { kategoria: "Történelmi esemény", szoveg: "AUGSBURGI CSATA" },
+    { kategoria: "Történelmi esemény", szoveg: "A RIGÓMEZEI CSATA" },
+    { kategoria: "Történelmi esemény", szoveg: "A TRÓJAI HÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "A PERZSA HÁBORÚK" },
+    { kategoria: "Történelmi esemény", szoveg: "A PELOPONNÉSZOSZI HÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "SPARTACUS RABSZOLGAFELKELÉSE" },
+    { kategoria: "Történelmi esemény", szoveg: "KOLUMBUSZ AMERIKÁBA ÉRKEZÉSE" },
+    { kategoria: "Történelmi esemény", szoveg: "MAGELLÁN FÖLD KÖRÜLI ÚTJA" },
+    { kategoria: "Történelmi esemény", szoveg: "A REFORMÁCIÓ KEZDETE" },
+    { kategoria: "Történelmi esemény", szoveg: "A VESZTFÁLIAI BÉKE" },
+    { kategoria: "Történelmi esemény", szoveg: "A BOSTONI TEADÉLUTÁN" },
+    { kategoria: "Történelmi esemény", szoveg: "A BASTILLE BEVÉTELE" },
+    { kategoria: "Történelmi esemény", szoveg: "KRÍMI HÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "AZ ELSŐ VILÁGHÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "A MÁSODIK VILÁGHÁBORÚ" },
+    { kategoria: "Történelmi esemény", szoveg: "NORMANDIAI PARTRASZÁLLÁS" },
+    { kategoria: "Történelmi esemény", szoveg: "AZ EMBER HOLDRA LÉPÉSE" }
 ];
 
 function getRoom(roomName) {
@@ -134,6 +247,7 @@ function getRoom(roomName) {
         rooms[roomName] = {
             jatekosok: [],
             aktualisJatekosIndex: 0,
+            kezdoJatekosIndex: 0,
             kivalasztottFeladvany: null,
             feladvanyKeszitoId: null, // ÚJ: a feladványt feladó id-ja
             kitalaltBetuk: [],
@@ -170,7 +284,7 @@ function KovetkezoJatekos(roomName) {
         room.jatekosok[room.aktualisJatekosIndex].id === room.feladvanyKeszitoId
     );
     
-    io.to(roomName).emit('turn_changed', { aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex] });
+    io.to(roomName).emit('turn_changed', { aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex], feladvanyKeszitoId: room.feladvanyKeszitoId });
 }
 
 io.on('connection', (socket) => {
@@ -220,6 +334,7 @@ io.on('connection', (socket) => {
         room.jatekMegy = true;
         room.feladvanyKeszitoId = null; // Gép által adott feladvány
         room.jatekosok.forEach(j => { j.korPont = 0; });
+        room.kezdoJatekosIndex = 0;
         room.aktualisJatekosIndex = -1; 
         room.kitalaltBetuk = [];
         room.kivalasztottFeladvany = UjFeladvanySorsolasa(room);
@@ -280,9 +395,10 @@ io.on('connection', (socket) => {
             });
 
             if (mindMegvan) {
-                room.jatekosok[room.aktualisJatekosIndex].osszPont += room.jatekosok[room.aktualisJatekosIndex].korPont;
+                const nyertesJatekos = room.jatekosok[room.aktualisJatekosIndex];
+                nyertesJatekos.osszPont += nyertesJatekos.korPont;
                 setTimeout(() => { 
-                    io.to(roomName).emit('round_won', { nyertes: room.jatekosok[room.aktualisJatekosIndex], jatekosok: room.jatekosok, teljesSzo: szo }); 
+                    io.to(roomName).emit('round_won', { nyertes: nyertesJatekos, jatekosok: room.jatekosok, teljesSzo: szo }); 
                 }, 2000);
             }
         } else {
@@ -296,8 +412,9 @@ io.on('connection', (socket) => {
         const room = rooms[roomName];
         if (!room) return;
         if (tippMegfejtes.toUpperCase().trim() === room.kivalasztottFeladvany.szoveg) {
-            room.jatekosok[room.aktualisJatekosIndex].osszPont += room.jatekosok[room.aktualisJatekosIndex].korPont;
-            io.to(roomName).emit('round_won', { nyertes: room.jatekosok[room.aktualisJatekosIndex], jatekosok: room.jatekosok, teljesSzo: room.kivalasztottFeladvany.szoveg });
+            const nyertesJatekos = room.jatekosok[room.aktualisJatekosIndex];
+            nyertesJatekos.osszPont += nyertesJatekos.korPont;
+            io.to(roomName).emit('round_won', { nyertes: nyertesJatekos, jatekosok: room.jatekosok, teljesSzo: room.kivalasztottFeladvany.szoveg });
         } else {
             room.jatekosok[room.aktualisJatekosIndex].korPont = 0;
             io.to(roomName).emit('solve_failed', { jatekosNev: room.jatekosok[room.aktualisJatekosIndex].nev });
@@ -406,7 +523,14 @@ io.on('connection', (socket) => {
         setTimeout(() => {
             room.jatekosok.forEach(j => { j.korPont = 0; });
             room.kitalaltBetuk = [];
-            room.aktualisJatekosIndex = -1;
+            
+            // Körök kezdőjátékosának léptetése, hogy ne mindig a 0. játékos kezdjen
+            if (typeof room.kezdoJatekosIndex !== 'number') room.kezdoJatekosIndex = 0;
+            room.kezdoJatekosIndex = (room.kezdoJatekosIndex + 1) % room.jatekosok.length;
+            
+            room.aktualisJatekosIndex = room.kezdoJatekosIndex - 1;
+            if (room.aktualisJatekosIndex < 0) room.aktualisJatekosIndex = room.jatekosok.length - 1;
+            
             KovetkezoJatekos(roomName);
             
             io.to(roomName).emit('game_started', {
