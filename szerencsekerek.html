@@ -23,16 +23,15 @@
         #chat-messages li { padding: 5px; border-bottom: 1px solid #ccc; }
         .gyozelem-gomb { background-color: #28a745; margin-right: 10px; margin-top: 10px;}
         .visszater-gomb { background-color: #ff9800; font-weight: bold; width: 100%; margin-top:15px; }
+        .kimaradas-gomb { background-color: #6c757d; font-weight: bold; margin-left: 10px; }
         .kilepes-gomb { background-color: #dc3545; font-weight: bold; width: 100%; margin-top:20px; }
         #atvezeto-kepernyo { text-align: center; padding: 50px; background-color: #e2e3e5; border-radius: 10px; margin-top: 20px; }
         .info-szekcio { background-color: #f8f9fa; border: 2px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
         .fejlesztoi-szoveg { background-color: #e9ecef; border-left: 5px solid #007bff; padding: 15px; margin-bottom: 20px; border-radius: 3px; }
         
-        /* MODAL ABLAKOK STÍLUSA */
         .modal-hatter { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-tartalom { background: #fff; padding: 25px; border-radius: 8px; max-width: 700px; max-height: 80vh; overflow-y: auto; border: 3px solid #007bff; }
         
-        /* KÉPERNYŐOLVASÓ-SPECIFIKUS REJTETT SZÖVEG (JAWS ÉS NVDA SZÁMÁRA) */
         .sr-only {
             position: absolute;
             width: 1px;
@@ -49,11 +48,21 @@
 <body>
 
     <section id="lobby-screen">
-        <h1>Szerencsekerék V0.4.6 BETA</h1>
+        <h1>Szerencsekerék V0.5 BETA</h1>
         
         <div class="fejlesztoi-szoveg">
             <p><strong>Készítette:</strong> Rauch Róbert</p>
-<p>A legutóbbi frissítésben kibővítésre került a beépített feladvány-adatbázis, és kijavításra került egy hiba, melynek előfordulásakor egy megfejtést követően nem volt lehetséges új kört indítani. <p>
+            <p>A legutóbbi frissítésben: 
+<ul>
+<li>Bevezetésre került a publikus szoba, amelynek neve szerencsekerek, de egy dedikált gomb is odaviszi a játékost a bejelentkezési képernyőn. A játékélmény megőrzése érdekében egy szobában maximum egyszerre 10 fő játszhat.
+<li>
+Finomodott a szétkapcsolások vagy a véletlen kilépések kezelése. Ha valamilyen okból bomlott a kapcsolat, ugyanazon nevet és szobát megadva a játékos vissza tud térni és folytathatja a játékot.
+<li>
+Már játék közben is elérhető a csevegés.
+<li>
+Ha egy adott szobába játék közben lép be egy új érkező, az adott körben nézőként nyomon követheti az épp zajló játékot illetve használhatja a csevegőt,  teljes jogú játékossá pedig a következő körben válik.
+</ul>
+
             <p>A játék ezen verziója jelenleg tesztfázisban, úgynevezett beta állapotban van, így előfordulhatnak hibák, anomáliák a használat közben, ezekért előre is elnézést kérek. Az építő jellegű javaslatokat vagy a hibabejelentéseket szívesen várom az alábbi e-mail címre:</p>
             <p><a href="mailto:rauch33@gmail.com"><strong>rauch33@gmail.com</strong></a></p>
             <p><em>Jó játékot kívánok!</em></p>
@@ -68,6 +77,7 @@
             <input type="text" id="room-name-input" placeholder="Pl: pentek-este" style="width: 100%; max-width: 300px;" autocomplete="off">
             <br>
             <button id="join-btn" style="background-color: #28a745;">Csatlakozás a szobához</button>
+            <button id="join-public-btn" style="background-color: #17a2b8; margin-left: 5px;">Belépés a publikus szobába</button>
             
             <hr style="margin: 15px 0;">
             <button id="jogi-btn" style="background-color: #6c757d; font-size: 15px;">📜 Jogi nyilatkozat és feltételek</button>
@@ -96,10 +106,10 @@
             <p>Ez a webes alkalmazás egy <strong>nem kereskedelmi, nonprofit rajongói és oktatási projekt</strong>. A fejlesztés legfőbb és elsődleges célja, hogy a népszerű <em>Szerencsekerék</em> televíziós vetélkedőt a képernyőolvasó szoftvereket használó <strong>vak és gyengénlátó felhasználók számára is hozzáférhetővé és akadálymentesen játszhatóvá tegye</strong>.</p>
             <p>Bár a játékból léteznek fizikai, mechanikus társasjáték-változatok, azok a látássérült emberek számára nem akadálymentesek, hiszen a táblák, kártyák és feliratok vakon nem olvashatóak. Jelen szoftver ezt az akadályt hidalja át digitális technológiák segítségével.</p>
             <h3>2. Szerzői jogok és védjegyek</h3>
-            <p>A játék alapjául szolgáló <em>Szerencsekerék</em> televíziós vetélkedő eredeti formátuma (<em>Wheel of Fortune</em>, megalkotója Merv Griffin) a <strong>Sony Pictures Television</strong>, valamint a mindenkori jogtulajdonosok és licencek birtokosainak kizárólagos szellemi tulajdonát képezi (Magyarországon a licencelt televíziós műsorok és formátumok mindenkori jogtulajdonosait illeti a jog).</p>
+            <p>A játék alapjául szolgáló <em>Szerencsekerék</em> televíziós vetélkedő eredeti formátuma (<em>Wheel of Fortune</em>, megalkotója Merv Griffin) a <strong>Sony Pictures Television</strong>, valamint a mindenkori jogtulajdonosok és licencek birtokosainak kizárólagos szellemi tulajdonát képezi.</p>
             <p>A játék során felhangzó hangeffektek, szignálok és zenei bejátszások az eredeti jogtulajdonosok és jogutódaik tulajdonát képezik. Az alkalmazásban kizárólag az autentikus játékélmény biztosítása és az akusztikus visszacsatolás céljából szólalnak meg.</p>
             <h3>3. Nonprofit jelleg és kereskedelmi használat tilalma</h3>
-            <p>A szoftver használata <strong>teljesen ingyenes</strong>, a fejlesztő a szolgáltatásért semmilyen díjazásra igényt nem tart, abban hirdetések, mikrotranzakciók vagy egyéb bevételszerzési mechanizmusok nem találhatók. A projekt és annak forráskódja <strong>kereskedelmi forgalomba nem hozható</strong>, pénzért nem értékesíthető, és egyéb üzleti célra fel nem használható.</p>
+            <p>A szoftver használata <strong>teljesen ingyenes</strong>, a fejlesztő a szolgáltatásért semmilyen díjazásra igényt nem tart, abban hirdetések, mikrotranzakciók vagy egyéb bevételszerzési mechanizmusok nem találhatók.</p>
             <h3>4. Felelősségkorlátozás</h3>
             <p>A szoftver <em>"ahogy van"</em> (AS IS) alapon áll a felhasználók rendelkezésére. A fejlesztő nem vállal jogi vagy anyagi felelősséget a szoftver használatából, esetleges üzemkimaradásokból vagy technikai hibákból eredő közvetlen vagy közvetett károkért.</p>
             <hr>
@@ -107,11 +117,11 @@
         </div>
     </div>
 
-    <!-- AKADÁLYMENTES MEGFEJTŐ MODAL ABLAK -->
+    <!-- MEGFEJTŐ MODAL -->
     <div id="megfejtes-modal" class="modal-hatter hidden" role="dialog" aria-labelledby="megfejtes-cimsor" aria-modal="true">
         <div class="modal-tartalom" style="border-color: #28a745;">
             <h2 id="megfejtes-cimsor" tabindex="-1">Megfejtés beírása</h2>
-            <p>Írd be a teljes megfejtést! .</p>
+            <p>Írd be a teljes megfejtést!</p>
             <label for="megfejtes-input" class="hidden">Teljes megfejtés:</label>
             <input type="text" id="megfejtes-input" style="width: 100%; font-size: 20px; margin-bottom: 15px;" placeholder="Pl: PETŐFI SÁNDOR" autocomplete="off">
             <br>
@@ -141,6 +151,7 @@
         <div id="akciogombok">
             <button id="porget-btn" disabled>Pörgetés 🎡</button>
             <button id="megfejt-btn" disabled>Megfejtem 💡</button>
+            <button id="kimaradas-btn" class="kimaradas-gomb">Kimaradás / Távollét ⏸️</button>
         </div>
 
         <div id="tipp-szekcio" class="hidden">
@@ -170,9 +181,10 @@
 
         <button id="visszater-btn" class="visszater-gomb hidden">Itt vagyok / Visszatértem (Alt+I)</button>
 
-        <div id="chat-szekcio" class="hidden">
-            <h3>Szoba Csevegő (Kör végi egyeztetés)</h3>
-            <input type="text" id="chat-input" placeholder="Írj egy üzenetet..." style="width: 70%;" autocomplete="off">
+        <!-- FOLYAMATOSAN ELÉRHERŐ SZOBA CSEVEGŐ -->
+        <div id="chat-szekcio">
+            <h3>Szoba Csevegő</h3>
+            <input type="text" id="chat-input" placeholder="Írj egy üzenetet a szobának..." style="width: 70%;" autocomplete="off">
             <button id="chat-kuld-btn">Küldés</button>
             <ul id="chat-messages" aria-live="polite"></ul>
         </div>
@@ -192,6 +204,7 @@
         let aktJatekosId = null;
         let jatekosokCache = []; 
         let feladvanyKeszitoIdCache = null;
+        let amINezo = false; // ÚJ FLAG A NÉZŐI ÁLLAPOTHOZ
 
         const kerekBejelento = document.getElementById("kerek-bejelento");
         const BEJELENTESI_SZUNET = 2000; 
@@ -253,10 +266,8 @@
             
             const mentesNev = sessionStorage.getItem('sk_myName');
             const mentesSzoba = sessionStorage.getItem('sk_myRoom');
-            if (mentesNev && mentesSzoba) {
-                document.getElementById("my-name-input").value = mentesNev;
-                document.getElementById("room-name-input").value = mentesSzoba;
-            }
+            if (mentesNev) document.getElementById("my-name-input").value = mentesNev;
+            if (mentesSzoba) document.getElementById("room-name-input").value = mentesSzoba;
         };
 
         function MonddKi(szoveg) {
@@ -269,22 +280,37 @@
             audio.play().catch(e => {}); 
         }
 
-        document.getElementById("join-btn").addEventListener("click", () => {
+        function CsatlakozasSzobahoz(szobaNev) {
             const nev = document.getElementById("my-name-input").value.trim();
-            const szoba = document.getElementById("room-name-input").value.trim();
-            if(!nev || !szoba) return alert("Írd be a neved és a szoba nevét is!");
-            
-            JatszHang("indulas.mp3");
+            if(!nev) return alert("Kérlek, írd be a neved!");
+            if(!szobaNev) return alert("Kérlek, adod meg a szoba nevét!");
 
             myName = nev;
             sessionStorage.setItem('sk_myName', nev);
-            sessionStorage.setItem('sk_myRoom', szoba);
+            sessionStorage.setItem('sk_myRoom', szobaNev);
             
-            socket.emit('join_room', { nev, szoba, sessionId: mySessionId });
-            
+            socket.emit('join_room', { nev, szoba: szobaNev, sessionId: mySessionId });
+        }
+
+        document.getElementById("join-btn").addEventListener("click", () => {
+            CsatlakozasSzobahoz(document.getElementById("room-name-input").value.trim());
+        });
+
+        document.getElementById("join-public-btn").addEventListener("click", () => {
+            document.getElementById("room-name-input").value = "szerencsekerek";
+            CsatlakozasSzobahoz("szerencsekerek");
+        });
+
+        socket.on('join_error', (hibaUzenet) => {
+            alert(hibaUzenet);
+        });
+
+        socket.on('join_success', (data) => {
+            JatszHang("indulas.mp3");
             document.getElementById("belepest-keres-blokk").classList.add("hidden");
             document.getElementById("lobby-players").classList.remove("hidden");
             document.getElementById("join-btn").disabled = true;
+            document.getElementById("join-public-btn").disabled = true;
             document.getElementById("my-name-input").disabled = true;
             document.getElementById("room-name-input").disabled = true;
         });
@@ -298,6 +324,7 @@
             jatekosok.forEach(j => {
                 let statusz = "";
                 if (j.disconnected) statusz = " [OFFLINE]";
+                else if (j.nezo) statusz = " [NÉZŐ - KÖVETKEZŐ KÖRBEN JÁTSZIK]";
                 else if (j.tavolVan) statusz = " [TÁVOL]";
                 
                 const li = document.createElement("li");
@@ -316,15 +343,20 @@
         socket.on('player_left_permanently', (data) => { MonddKi(`${data.nev} végleg kilépett a játékból.`); });
         
         socket.on('rejoin_game_state', (data) => {
+            amINezo = !!data.isNezo;
             document.getElementById("lobby-screen").classList.add("hidden");
             document.getElementById("atvezeto-kepernyo").classList.add("hidden");
             document.getElementById("game-screen").classList.remove("hidden");
             document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
             RenderszoMaszk(data.maszkoltSzoveg);
             JatekosKijelzoFrissitese(data.jatekosok, data.aktualisJatekos, data.feladvanyKeszitoId);
+
+            if (amINezo) {
+                document.getElementById("kimaradas-btn").classList.add("hidden");
+                MonddKi("A szobában épp játék folyik. Nézőként csatlakoztál, a következő kör indulásakor válsz teljes jogú játékossá.");
+            }
         });
 
-        // --- AKADÁLYMENTES SZÓMASZK RENDEREZÉS (JAWS ÉS NVDA TÁMOGATÁSSAL) ---
         function RenderszoMaszk(maszk) {
             const kontener = document.getElementById("feladvany-container");
             kontener.innerHTML = "";
@@ -378,13 +410,15 @@
             }
 
             const enVagyokAFelado = (myId === feladvanyKeszitoIdCache);
-            const myTurn = (aktJatekos && ((aktJatekos.sessionId && aktJatekos.sessionId === mySessionId) || aktJatekos.id === myId) && !enVagyokAFelado);
+            const myTurn = (!amINezo && aktJatekos && ((aktJatekos.sessionId && aktJatekos.sessionId === mySessionId) || aktJatekos.id === myId) && !enVagyokAFelado);
             
             document.getElementById("porget-btn").disabled = !myTurn;
             document.getElementById("megfejt-btn").disabled = !myTurn;
         }
 
         socket.on('game_started', (data) => {
+            amINezo = false; // AZ ÚJ KÖRBEN MÁR MINDENKI JÁTÉKOS!
+            document.getElementById("kimaradas-btn").classList.remove("hidden");
             document.getElementById("lobby-screen").classList.add("hidden");
             document.getElementById("atvezeto-kepernyo").classList.add("hidden");
             document.getElementById("game-screen").classList.remove("hidden");
@@ -392,8 +426,6 @@
             document.getElementById("sajat-feladvany-szekcio").classList.add("hidden");
             document.getElementById("jatekos-valaszto-szekcio").classList.add("hidden");
             document.getElementById("visszater-btn").classList.add("hidden");
-            document.getElementById("chat-szekcio").classList.add("hidden");
-            document.getElementById("chat-messages").innerHTML = "";
             
             document.getElementById("kategoria-cimsor").textContent = `Kategória: ${data.kategoria}`;
             RenderszoMaszk(data.maszkoltSzoveg);
@@ -409,7 +441,16 @@
             }
         });
 
-        // --- BILLENTYŰZETI GYORSGOMBOK ---
+        document.getElementById("kimaradas-btn").addEventListener("click", () => {
+            if(amINezo) return;
+            if(confirm("Kijelentkezel a játékból ideiglenesen? A rendszer átugorja a köreidet, amíg vissza nem térsz.")) {
+                socket.emit('skip_turn');
+                document.getElementById("tipp-szekcio").classList.add("hidden");
+                document.getElementById("porget-btn").disabled = true;
+                document.getElementById("megfejt-btn").disabled = true;
+            }
+        });
+
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 if (!jogiModal.classList.contains("hidden")) { BezarJogiModal(); return; }
@@ -435,14 +476,7 @@
                     }
                 } else if (key === 'k') {
                     e.preventDefault();
-                    if (aktJatekosId === myId && !document.getElementById("porget-btn").disabled) {
-                        if(confirm("Kijelentkezel a játékból ideiglenesen? A rendszer átugorja a köreidet, amíg vissza nem térsz.")) {
-                            socket.emit('skip_turn');
-                            document.getElementById("tipp-szekcio").classList.add("hidden");
-                            document.getElementById("porget-btn").disabled = true;
-                            document.getElementById("megfejt-btn").disabled = true;
-                        }
-                    }
+                    document.getElementById("kimaradas-btn").click();
                 } else if (key === 'i') {
                     e.preventDefault();
                     if (!document.getElementById("visszater-btn").classList.contains("hidden")) {
@@ -466,6 +500,7 @@
                 document.getElementById("belepest-keres-blokk").classList.remove("hidden");
                 
                 document.getElementById("join-btn").disabled = false;
+                document.getElementById("join-public-btn").disabled = false;
                 document.getElementById("my-name-input").disabled = false;
                 document.getElementById("room-name-input").disabled = false;
                 document.getElementById("room-name-input").value = "";
@@ -574,7 +609,6 @@
             document.getElementById("tipp-szekcio").classList.add("hidden");
             document.getElementById("sajat-feladvany-szekcio").classList.add("hidden");
             document.getElementById("jatekos-valaszto-szekcio").classList.add("hidden");
-            document.getElementById("chat-szekcio").classList.remove("hidden");
 
             const enNyertem = (data.nyertes.sessionId && data.nyertes.sessionId === mySessionId) || data.nyertes.id === myId;
 

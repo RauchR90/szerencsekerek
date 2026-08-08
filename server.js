@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -16,231 +17,15 @@ app.get('/', (req, res) => {
 
 const rooms = {};
 const kerekMezok = [1000, 1000, 2000, 2000, 4000, 4000, 5000, 5000, 6000, 8000, 10000, 15000, 20000, "CSŐD", "PASSZ"];
-const alapFeladvanyok = [
-    // Magyar költők, írók (10)
-    { kategoria: "Magyar költő, író", szoveg: "PETŐFI SÁNDOR" }, { kategoria: "Magyar költő, író", szoveg: "ARANY JÁNOS" },
-    { kategoria: "Magyar költő, író", szoveg: "RADNÓTI MIKLÓS" }, { kategoria: "Magyar költő, író", szoveg: "MÓRICZ ZSIGMOND" },
-    { kategoria: "Magyar költő, író", szoveg: "ADY ENDRE" }, { kategoria: "Magyar költő, író", szoveg: "JÓZSEF ATTILA" },
-    { kategoria: "Magyar költő, író", szoveg: "KOSZTOLÁNYI DEZSŐ" }, { kategoria: "Magyar költő, író", szoveg: "BABITS MIHÁLY" },
-    { kategoria: "Magyar költő, író", szoveg: "GÁRDONYI GÉZA" }, { kategoria: "Magyar költő, író", szoveg: "SZABÓ MAGDA" },
 
-    // Magyar települések (35)
-    { kategoria: "Magyar település", szoveg: "SIÓFOK" }, { kategoria: "Magyar település", szoveg: "SZENTENDRE" },
-    { kategoria: "Magyar település", szoveg: "VISEGRÁD" }, { kategoria: "Magyar település", szoveg: "HAJDÚSZOBOSZLÓ" },
-    { kategoria: "Magyar település", szoveg: "KARCAG" }, { kategoria: "Magyar település", szoveg: "ESZTERGOM" },
-    { kategoria: "Magyar település", szoveg: "TAPOLCA" }, { kategoria: "Magyar település", szoveg: "SOPRON" },
-    { kategoria: "Magyar település", szoveg: "KESZTHELY" }, { kategoria: "Magyar település", szoveg: "BALATONFÜRED" },
-    { kategoria: "Magyar település", szoveg: "HÓDMEZŐVÁSÁRHELY" }, { kategoria: "Magyar település", szoveg: "ZALAEGERSZEG" },
-    { kategoria: "Magyar település", szoveg: "BÉKÉSCSABA" }, { kategoria: "Magyar település", szoveg: "GYULA" },
-    { kategoria: "Magyar település", szoveg: "TIHANY" }, { kategoria: "Magyar település", szoveg: "DEBRECEN" },
-    { kategoria: "Magyar település", szoveg: "MISKOLC" }, { kategoria: "Magyar település", szoveg: "SZEGED" },
-    { kategoria: "Magyar település", szoveg: "PÉCS" }, { kategoria: "Magyar település", szoveg: "GYŐR" },
-    { kategoria: "Magyar település", szoveg: "SZÉKESFEHÉRVÁR" }, { kategoria: "Magyar település", szoveg: "SZOMBATHELY" },
-    { kategoria: "Magyar település", szoveg: "SZOLNOK" }, { kategoria: "Magyar település", szoveg: "TATABÁNYA" },
-    { kategoria: "Magyar település", szoveg: "KAPOSVÁR" }, { kategoria: "Magyar település", szoveg: "ÉRD" },
-    { kategoria: "Magyar település", szoveg: "DUNAKESZI" }, { kategoria: "Magyar település", szoveg: "CEGLÉD" },
-    { kategoria: "Magyar település", szoveg: "BAJA" }, { kategoria: "Magyar település", szoveg: "VÁC" },
-    { kategoria: "Magyar település", szoveg: "GÖDÖLLŐ" }, { kategoria: "Magyar település", szoveg: "KISKUNFÉLEGYHÁZA" },
-    { kategoria: "Magyar település", szoveg: "SZENTES" }, { kategoria: "Magyar település", szoveg: "GYÖNGYÖS" },
-    { kategoria: "Magyar település", szoveg: "KISVÁRDA" },
-
-    // Külföldi város vagy ország (38)
-    { kategoria: "Külföldi város vagy ország", szoveg: "OLASZORSZÁG" }, { kategoria: "Külföldi város vagy ország", szoveg: "AMSTERDAM" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "MADRID" }, { kategoria: "Külföldi város vagy ország", szoveg: "JAPÁN" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "BARCELONA" }, { kategoria: "Külföldi város vagy ország", szoveg: "PÁRIZS" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "LONDON" }, { kategoria: "Külföldi város vagy ország", szoveg: "SVÉDORSZÁG" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "FINNORSZÁG" }, { kategoria: "Külföldi város vagy ország", szoveg: "RÓMA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "AUSZTRÁLIA" }, { kategoria: "Külföldi város vagy ország", szoveg: "KANADA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "ARGENTÍNA" }, { kategoria: "Külföldi város vagy ország", szoveg: "TOKIÓ" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "BERLIN" }, { kategoria: "Külföldi város vagy ország", szoveg: "BÉCS" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "PRÁGA" }, { kategoria: "Külföldi város vagy ország", szoveg: "AMERIKAI EGYESÜLT ÁLLAMOK" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "SPANYOLORSZÁG" }, { kategoria: "Külföldi város vagy ország", szoveg: "FRANCIAORSZÁG" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "GÖRÖGORSZÁG" }, { kategoria: "Külföldi város vagy ország", szoveg: "TÖRÖKORSZÁG" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "EGYIPTOM" }, { kategoria: "Külföldi város vagy ország", szoveg: "KÍNA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "INDIA" }, { kategoria: "Külföldi város vagy ország", szoveg: "BRAZÍLIA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "MEXIKÓ" }, { kategoria: "Külföldi város vagy ország", szoveg: "NEW YORK" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "LOS ANGELES" }, { kategoria: "Külföldi város vagy ország", szoveg: "MOSZKVA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "PEKING" }, { kategoria: "Külföldi város vagy ország", szoveg: "DUBAI" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "ATHÉN" }, { kategoria: "Külföldi város vagy ország", szoveg: "LISSZABON" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "BOGOTA" }, { kategoria: "Külföldi város vagy ország", szoveg: "LIMA" },
-    { kategoria: "Külföldi város vagy ország", szoveg: "KAIRÓ" }, { kategoria: "Külföldi város vagy ország", szoveg: "SYDNEY" },
-
-    // Étel és ital (15)
-    { kategoria: "Étel és ital", szoveg: "GULYÁSLEVES" }, { kategoria: "Étel és ital", szoveg: "SOMLÓI GALUSKA" },
-    { kategoria: "Étel és ital", szoveg: "CAPPUCCINO" }, { kategoria: "Étel és ital", szoveg: "MARLENKA" },
-    { kategoria: "Étel és ital", szoveg: "PALACSINTA" }, { kategoria: "Étel és ital", szoveg: "TÖLTÖTT KÁPOSZTA" },
-    { kategoria: "Étel és ital", szoveg: "RÁNTOTT SAJT" }, { kategoria: "Étel és ital", szoveg: "GYÜMÖLCSLÉ" },
-    { kategoria: "Étel és ital", szoveg: "FORRÓ CSOKOLÁDÉ" }, { kategoria: "Étel és ital", szoveg: "MEGGYLEVES" },
-    { kategoria: "Étel és ital", szoveg: "TÚRÓS CSUSZA" }, { kategoria: "Étel és ital", szoveg: "MADÁRTEJ" },
-    { kategoria: "Étel és ital", szoveg: "KAKAÓS CSIGA" }, { kategoria: "Étel és ital", szoveg: "LIMONÁDÉ" },
-    { kategoria: "Étel és ital", szoveg: "HAMBURGER" },
-
-    // Állatvilág (15)
-    { kategoria: "Állatvilág", szoveg: "KANÁRI" }, { kategoria: "Állatvilág", szoveg: "CSÁSZÁRPINGVIN" },
-    { kategoria: "Állatvilág", szoveg: "ZSIRÁF" }, { kategoria: "Állatvilág", szoveg: "ELEFÁNT" },
-    { kategoria: "Állatvilág", szoveg: "OROSZLÁN" }, { kategoria: "Állatvilág", szoveg: "VÍZILÓ" },
-    { kategoria: "Állatvilág", szoveg: "JEGESMEDVE" }, { kategoria: "Állatvilág", szoveg: "GORILLA" },
-    { kategoria: "Állatvilág", szoveg: "KROKODIL" }, { kategoria: "Állatvilág", szoveg: "DELFIN" },
-    { kategoria: "Állatvilág", szoveg: "KENGURU" }, { kategoria: "Állatvilág", szoveg: "VADKAN" },
-    { kategoria: "Állatvilág", szoveg: "SZARVAS" }, { kategoria: "Állatvilág", szoveg: "MÓKUS" },
-    { kategoria: "Állatvilág", szoveg: "BORZ" },
-
-    // Film és sorozat (15)
-    { kategoria: "Film vagy sorozat", szoveg: "GLADIÁTOR" }, { kategoria: "Film vagy sorozat", szoveg: "STAR WARS" },
-    { kategoria: "Film vagy sorozat", szoveg: "JURASSIC PARK" }, { kategoria: "Film vagy sorozat", szoveg: "INCEPTION" },
-    { kategoria: "Film vagy sorozat", szoveg: "SHREK" }, { kategoria: "Film vagy sorozat", szoveg: "TITANIC" },
-    { kategoria: "Film vagy sorozat", szoveg: "AVATAR" }, { kategoria: "Film vagy sorozat", szoveg: "HARRY POTTER" },
-    { kategoria: "Film vagy sorozat", szoveg: "MÁTRIX" }, { kategoria: "Film vagy sorozat", szoveg: "A GYŰRŰK URA" },
-    { kategoria: "Film vagy sorozat", szoveg: "RESZKESSETEK BETÖRŐK" }, { kategoria: "Film vagy sorozat", szoveg: "JÓBARÁTOK" },
-    { kategoria: "Film vagy sorozat", szoveg: "TRÓNOK HARCA" }, { kategoria: "Film vagy sorozat", szoveg: "AGYAMENŐK" },
-    { kategoria: "Film vagy sorozat", szoveg: "BREAKING BAD" },
-
-    // Használati tárgy (61)
-    { kategoria: "Használati tárgy", szoveg: "MIKROHULLÁMÚ SÜTŐ" }, { kategoria: "Használati tárgy", szoveg: "VEZETÉK NÉLKÜLI EGÉR" },
-    { kategoria: "Használati tárgy", szoveg: "KÁVÉFŐZŐ" }, { kategoria: "Használati tárgy", szoveg: "PORSZÍVÓ" },
-    { kategoria: "Használati tárgy", szoveg: "MOSÓGÉP" }, { kategoria: "Használati tárgy", szoveg: "HAJSZÁRÍTÓ" },
-    { kategoria: "Használati tárgy", szoveg: "HŰTŐSZEKRÉNY" }, { kategoria: "Használati tárgy", szoveg: "VASALÓ" },
-    { kategoria: "Használati tárgy", szoveg: "MOSOGATÓGÉP" }, { kategoria: "Használati tárgy", szoveg: "FŰNYÍRÓ" },
-    { kategoria: "Használati tárgy", szoveg: "OKOSTELEFON" }, { kategoria: "Használati tárgy", szoveg: "TABLET" },
-    { kategoria: "Használati tárgy", szoveg: "BILLENTYŰZET" }, { kategoria: "Használati tárgy", szoveg: "FÜLHALLGATÓ" },
-    { kategoria: "Használati tárgy", szoveg: "ASZTALI LÁMPA" }, { kategoria: "Használati tárgy", szoveg: "ÉBRESZTŐÓRA" },
-    { kategoria: "Használati tárgy", szoveg: "FALIÓRA" }, { kategoria: "Használati tárgy", szoveg: "TÁVIRÁNYÍTÓ" },
-    { kategoria: "Használati tárgy", szoveg: "KULCSTARTÓ" }, { kategoria: "Használati tárgy", szoveg: "NAPSZEMÜVEG" },
-    { kategoria: "Használati tárgy", szoveg: "ESERNYŐ" }, { kategoria: "Használati tárgy", szoveg: "HÁTIZSÁK" },
-    { kategoria: "Használati tárgy", szoveg: "PÉNZTÁRCA" }, { kategoria: "Használati tárgy", szoveg: "CSAVARHÚZÓ" },
-    { kategoria: "Használati tárgy", szoveg: "KALAPÁCS" }, { kategoria: "Használati tárgy", szoveg: "FOGKEFE" },
-    { kategoria: "Használati tárgy", szoveg: "TÜKÖR" }, { kategoria: "Használati tárgy", szoveg: "FÉSŰ" },
-    { kategoria: "Használati tárgy", szoveg: "TÖRÖLKÖZŐ" }, { kategoria: "Használati tárgy", szoveg: "SZAPPANADAGOLÓ" },
-    { kategoria: "Használati tárgy", szoveg: "KANAPÉ" }, { kategoria: "Használati tárgy", szoveg: "FOTEL" },
-    { kategoria: "Használati tárgy", szoveg: "RUHASSZEKRÉNY" }, { kategoria: "Használati tárgy", szoveg: "KÉPKERET" },
-    { kategoria: "Használati tárgy", szoveg: "KÖNYVESPOLC" }, { kategoria: "Használati tárgy", szoveg: "VIRÁGCSERÉP" },
-    { kategoria: "Használati tárgy", szoveg: "PÁRNA" }, { kategoria: "Használati tárgy", szoveg: "TAKARÓ" },
-    { kategoria: "Használati tárgy", szoveg: "LEPEDŐ" }, { kategoria: "Használati tárgy", szoveg: "OLLÓ" },
-    { kategoria: "Használati tárgy", szoveg: "RAGASZTÓSZALAG" }, { kategoria: "Használati tárgy", szoveg: "TOLLTARTÓ" },
-    { kategoria: "Használati tárgy", szoveg: "CSISZOLÓPAPÍR" }, { kategoria: "Használati tárgy", szoveg: "LÉTRA" },
-    { kategoria: "Használati tárgy", szoveg: "POHÁR" }, { kategoria: "Használati tárgy", szoveg: "TÁNYÉR" },
-    { kategoria: "Használati tárgy", szoveg: "EVŐESZKÖZ" }, { kategoria: "Használati tárgy", szoveg: "KANÁL" },
-    { kategoria: "Használati tárgy", szoveg: "VILLA" }, { kategoria: "Használati tárgy", szoveg: "KÉS" },
-    { kategoria: "Használati tárgy", szoveg: "VÁGÓDESZKA" }, { kategoria: "Használati tárgy", szoveg: "MERŐKANÁL" },
-    { kategoria: "Használati tárgy", szoveg: "HABVERŐ" }, { kategoria: "Használati tárgy", szoveg: "SERPENYŐ" },
-    { kategoria: "Használati tárgy", szoveg: "FAZÉK" }, { kategoria: "Használati tárgy", szoveg: "TEPSI" },
-    { kategoria: "Használati tárgy", szoveg: "KUKTA" }, { kategoria: "Használati tárgy", szoveg: "RESZELŐ" },
-    { kategoria: "Használati tárgy", szoveg: "DUGÓHÚZÓ" }, { kategoria: "Használati tárgy", szoveg: "KONZERVNYITÓ" },
-    { kategoria: "Használati tárgy", szoveg: "HÚSKLOPFOLÓ" },
-
-    // Közmondás vagy szólás (50)
-    { kategoria: "Közmondás vagy szólás", szoveg: "AJÁNDÉK LÓNAK NE NÉZD A FOGÁT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "AKI KÍVÁNCSI HAMAR MEGÖREGSZIK" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "SOK LÚD DISZNÓT GYŐZ" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NEM MIND ARANY AMI FÉNYLIK" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "JOBB KÉSŐN MINT SOHA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "ADDIG ÜSD A VASAT AMÍG MELEG" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "EGY FECSKE NEM CSINÁL NYARAT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "AKINEK NEM INGE NE VEGYE MAGÁRA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "AMILYEN AZ ADJONISTEN OLYAN A FOGADJISTEN" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "CSALÁNBA NEM ÜT A MENNYKŐ" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "EGYIK SZEMEM SÍR A MÁSIK NEVET" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "HA LÓ NINCS A SZAMÁR IS JÓ" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "HALLGATNI ARANY" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "LASSÚ VÍZ PARTOT MOS" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "MADARAT TOLLÁRÓL EMBERT BARÁTJÁRÓL" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "MINDEN CSODA HÁROM NAPIG TART" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NE IGYÁL ELŐRE A MEDVE BŐRÉRE" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NEM ESIK MESSZE AZ ALMA A FÁJÁTÓL" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NEM LÁTJA A FÁTÓL AZ ERDŐT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NYUGTÁVAL DICSÉRD A NAPOT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "OKOS ENGED SZAMÁR SZENVED" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "AZ ÖRDÖG NEM ALSZIK" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "PÉNZ BESZÉL KUTYA UGAT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "SEGÍTS MAGADON AZ ISTEN IS MEGSEGÍT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "SOK BÁBA KÖZT ELVESZ A GYERMEK" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "SZÉGYEN A FUTÁS DE HASZNOS" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "TÖBB SZEM TÖBBET LÁT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "TÜRELEM RÓZSÁT TEREM" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "ÚGY ÉL MINT HAL A VÍZBEN" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "VAKOK KÖZÖTT FÉLSZEMŰ A KIRÁLY" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "ZAVAROS VÍZBEN HALÁSZIK" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "A KOCKA EL VAN VETVE" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "AKI MÁSNAK VERMET ÁS MAGA ESIK BELE" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "A REMÉNY HAL MEG UTOLJÁRA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "KÖZÖS LÓNAK TÚRÓS A HÁTA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "KUTYÁBÓL NEM LESZ SZALONNA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "MINDEN JÓ HA A VÉGE JÓ" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NEM ZÖRÖG A HARASZT HA NEM FÚJJA A SZÉL" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "KICSI A BORS DE ERŐS" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NAGY FÁBA VÁGJA A FEJSZÉJÉT" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "NAGY KŐ ESETT LE A SZÍVÉRŐL" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "KIBÚJIK A SZÖG A ZSÁKBÓL" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "KÉT LEGYET ÜT EGY CSAPÁSRA" },
-    { kategoria: "Közmondás vagy szólás", szoveg: "A LEVEGŐBE BESZÉL" },
-
-    // Híres magyar személy (35)
-    { kategoria: "Híres magyar személy", szoveg: "SZÉCHENYI ISTVÁN" },
-    { kategoria: "Híres magyar személy", szoveg: "KOSSUTH LAJOS" },
-    { kategoria: "Híres magyar személy", szoveg: "DEÁK FERENC" },
-    { kategoria: "Híres magyar személy", szoveg: "HUNYADI MÁTYÁS" },
-    { kategoria: "Híres magyar személy", szoveg: "SZENT ISTVÁN KIRÁLY" },
-    { kategoria: "Híres magyar személy", szoveg: "HUNYADI JÁNOS" },
-    { kategoria: "Híres magyar személy", szoveg: "RÁKÓCZI FERENC" },
-    { kategoria: "Híres magyar személy", szoveg: "KODÁLY ZOLTÁN" },
-    { kategoria: "Híres magyar személy", szoveg: "BARTÓK BÉLA" },
-    { kategoria: "Híres magyar személy", szoveg: "RUBIK ERNŐ" },
-    { kategoria: "Híres magyar személy", szoveg: "PUSKÁS FERENC" },
-    { kategoria: "Híres magyar személy", szoveg: "SEMMELWEIS IGNÁC" },
-    { kategoria: "Híres magyar személy", szoveg: "EÖTVÖS LORÁND" },
-    { kategoria: "Híres magyar személy", szoveg: "NEUMANN JÁNOS" },
-    { kategoria: "Híres magyar személy", szoveg: "KARIKÓ KATALIN" },
-    { kategoria: "Híres magyar személy", szoveg: "SZENTGYÖRGYI ALBERT" },
-    { kategoria: "Híres magyar személy", szoveg: "ZRÍNYI MIKLÓS" },
-    { kategoria: "Híres magyar személy", szoveg: "ZRÍNYI ILONA" },
-    { kategoria: "Híres magyar személy", szoveg: "DOBÓ ISTVÁN" },
-    { kategoria: "Híres magyar személy", szoveg: "MUNKÁCSY MIHÁLY" },
-    { kategoria: "Híres magyar személy", szoveg: "LISZT FERENC" },
-    { kategoria: "Híres magyar személy", szoveg: "ERKEL FERENC" },
-    { kategoria: "Híres magyar személy", szoveg: "BLAHA LUJZA" },
-    { kategoria: "Híres magyar személy", szoveg: "JEDLIK ÁNYOS" },
-    { kategoria: "Híres magyar személy", szoveg: "KANDÓ KÁLMÁN" },
-    { kategoria: "Híres magyar személy", szoveg: "GANZ ÁBRAHÁM" },
-    { kategoria: "Híres magyar személy", szoveg: "GÖRGEI ARTÚR" },
-    { kategoria: "Híres magyar személy", szoveg: "KŐRÖSI CSOMA SÁNDOR" },
-    { kategoria: "Híres magyar személy", szoveg: "WIGNER JENŐ" },
-    { kategoria: "Híres magyar személy", szoveg: "GÁBOR DÉNES" },
-    { kategoria: "Híres magyar személy", szoveg: "SZENT LÁSZLÓ KIRÁLY" },
-    { kategoria: "Híres magyar személy", szoveg: "BÁTHORY ERZSÉBET" },
-
-    // Történelmi esemény (35)
-    { kategoria: "Történelmi esemény", szoveg: "HONFOGLALÁS" },
-    { kategoria: "Történelmi esemény", szoveg: "A MUHI CSATA" },
-    { kategoria: "Történelmi esemény", szoveg: "A MOHÁCSI VÉSZ" },
-    { kategoria: "Történelmi esemény", szoveg: "EGER OSTROMA" },
-    { kategoria: "Történelmi esemény", szoveg: "NÁNDORFEHÉRVÁRI DIADAL" },
-    { kategoria: "Történelmi esemény", szoveg: "MARATHONI CSATA" },
-    { kategoria: "Történelmi esemény", szoveg: "WATERLOOI CSATA" },
-    { kategoria: "Történelmi esemény", szoveg: "A BERLINI FAL LEOMLÁSA" },
-    { kategoria: "Történelmi esemény", szoveg: "A FRANCIA FORRADALOM" },
-    { kategoria: "Történelmi esemény", szoveg: "A TRIANONI BÉKESZERZŐDÉS" },
-    { kategoria: "Történelmi esemény", szoveg: "A RÁKÓCZI SZABADSÁGHARC" },
-    { kategoria: "Történelmi esemény", szoveg: "A BÉCSI KONGRESSZUS" },
-    { kategoria: "Történelmi esemény", szoveg: "AMERIKAI FÜGGETLENSÉGI HÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "IPARI FORRADALOM" },
-    { kategoria: "Történelmi esemény", szoveg: "AUGSBURGI CSATA" },
-    { kategoria: "Történelmi esemény", szoveg: "A RIGÓMEZEI CSATA" },
-    { kategoria: "Történelmi esemény", szoveg: "A TRÓJAI HÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "A PERZSA HÁBORÚK" },
-    { kategoria: "Történelmi esemény", szoveg: "A PELOPONNÉSZOSZI HÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "SPARTACUS RABSZOLGAFELKELÉSE" },
-    { kategoria: "Történelmi esemény", szoveg: "KOLUMBUSZ AMERIKÁBA ÉRKEZÉSE" },
-    { kategoria: "Történelmi esemény", szoveg: "MAGELLÁN FÖLD KÖRÜLI ÚTJA" },
-    { kategoria: "Történelmi esemény", szoveg: "A REFORMÁCIÓ KEZDETE" },
-    { kategoria: "Történelmi esemény", szoveg: "A VESZTFÁLIAI BÉKE" },
-    { kategoria: "Történelmi esemény", szoveg: "A BOSTONI TEADÉLUTÁN" },
-    { kategoria: "Történelmi esemény", szoveg: "A BASTILLE BEVÉTELE" },
-    { kategoria: "Történelmi esemény", szoveg: "KRÍMI HÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "AZ ELSŐ VILÁGHÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "A MÁSODIK VILÁGHÁBORÚ" },
-    { kategoria: "Történelmi esemény", szoveg: "NORMANDIAI PARTRASZÁLLÁS" },
-    { kategoria: "Történelmi esemény", szoveg: "AZ EMBER HOLDRA LÉPÉSE" }
-];
+const feladvanyokPath = path.join(__dirname, 'feladvanyok.json');
+let alapFeladvanyok = [];
+try {
+    const rawData = fs.readFileSync(feladvanyokPath, 'utf8');
+    alapFeladvanyok = JSON.parse(rawData);
+} catch (err) {
+    console.error("Hiba a feladvanyok.json beolvasásakor:", err);
+}
 
 function getRoom(roomName) {
     if (!rooms[roomName]) {
@@ -249,7 +34,7 @@ function getRoom(roomName) {
             aktualisJatekosIndex: 0,
             kezdoJatekosIndex: 0,
             kivalasztottFeladvany: null,
-            feladvanyKeszitoId: null, // ÚJ: a feladványt feladó id-ja
+            feladvanyKeszitoId: null,
             kitalaltBetuk: [],
             jatekMegy: false,
             feladvanyok: JSON.parse(JSON.stringify(alapFeladvanyok))
@@ -272,8 +57,8 @@ function KovetkezoJatekos(roomName) {
     const room = rooms[roomName];
     if (!room || room.jatekosok.length === 0) return;
     
-    // Csak azok játszhatnak, akik nincsenek távol, nincsenek offline, ÉS nem ők adták fel a feladványt
-    const vanAktiv = room.jatekosok.some(j => !j.tavolVan && !j.disconnected && j.id !== room.feladvanyKeszitoId);
+    // Csak azok játszhatnak, akik nincsenek távol, nincsenek offline, NEM nézők, ÉS nem ők adták fel a feladványt
+    const vanAktiv = room.jatekosok.some(j => !j.tavolVan && !j.disconnected && !j.nezo && j.id !== room.feladvanyKeszitoId);
     if (!vanAktiv) return; 
 
     do {
@@ -281,6 +66,7 @@ function KovetkezoJatekos(roomName) {
     } while (
         room.jatekosok[room.aktualisJatekosIndex].tavolVan || 
         room.jatekosok[room.aktualisJatekosIndex].disconnected ||
+        room.jatekosok[room.aktualisJatekosIndex].nezo ||
         room.jatekosok[room.aktualisJatekosIndex].id === room.feladvanyKeszitoId
     );
     
@@ -294,34 +80,69 @@ io.on('connection', (socket) => {
         const nev = String(data.nev).trim();
         const sessionId = data.sessionId; 
 
+        if (!nev || !szoba) {
+            socket.emit('join_error', "Kérlek, add meg a neved és a szoba nevét is!");
+            return;
+        }
+
+        const room = getRoom(szoba);
+        
+        let jatekos = room.jatekosok.find(j => j.sessionId === sessionId || j.nev.toLowerCase() === nev.toLowerCase());
+
+        if (jatekos && !jatekos.disconnected && jatekos.sessionId !== sessionId) {
+            socket.emit('join_error', "Ezen a néven épp van aktív játékos a szobában, kérlek, válassz másik nevet!");
+            return;
+        }
+
+        const aktivJatekosokSzama = room.jatekosok.filter(j => !j.disconnected).length;
+        if (!jatekos && aktivJatekosokSzama >= 10) {
+            socket.emit('join_error', "Ez a szoba épp teljesen fullon van, 10 játékos játszik benne!");
+            return;
+        }
+
         socket.join(szoba);
         socket.data.roomName = szoba;
         socket.data.nev = nev;
-
-        const room = getRoom(szoba);
-        let jatekos = room.jatekosok.find(j => j.sessionId === sessionId);
         
+        const folyamatbanVanAJatek = room.jatekMegy;
+
         if (!jatekos) {
+            // Új játékos: ha már fut a játék, nézőként lép be a kör végéig!
             room.jatekosok.push({ 
-                id: socket.id, sessionId: sessionId, nev: nev, 
-                korPont: 0, osszPont: 0, tavolVan: false, disconnected: false 
+                id: socket.id, 
+                sessionId: sessionId, 
+                nev: nev, 
+                korPont: 0, 
+                osszPont: 0, 
+                tavolVan: false, 
+                disconnected: false,
+                nezo: folyamatbanVanAJatek 
             });
         } else {
+            // Visszatérő játékos: megőrzi az eredeti státuszát
             jatekos.id = socket.id;
+            jatekos.sessionId = sessionId;
             jatekos.nev = nev;
             jatekos.disconnected = false;
-            socket.to(szoba).emit('player_reconnected', { nev: nev });
+            jatekos.tavolVan = false;
             
-            if (room.jatekMegy && room.kivalasztottFeladvany) {
-                socket.emit('rejoin_game_state', {
-                    jatekosok: room.jatekosok,
-                    aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
-                    kategoria: room.kivalasztottFeladvany.kategoria,
-                    maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk),
-                    feladvanyKeszitoId: room.feladvanyKeszitoId
-                });
-            }
+            socket.to(szoba).emit('player_reconnected', { nev: nev });
         }
+
+        socket.emit('join_success', { nev, szoba });
+
+        if (folyamatbanVanAJatek && room.kivalasztottFeladvany) {
+            const azOFiguraja = room.jatekosok.find(j => j.id === socket.id);
+            socket.emit('rejoin_game_state', {
+                jatekosok: room.jatekosok,
+                aktualisJatekos: room.jatekosok[room.aktualisJatekosIndex],
+                kategoria: room.kivalasztottFeladvany.kategoria,
+                maszkoltSzoveg: maszkolSzoveg(room.kivalasztottFeladvany.szoveg, room.kitalaltBetuk),
+                feladvanyKeszitoId: room.feladvanyKeszitoId,
+                isNezo: azOFiguraja ? azOFiguraja.nezo : false
+            });
+        }
+
         io.to(szoba).emit('lobby_update', room.jatekosok);
     });
 
@@ -329,11 +150,12 @@ io.on('connection', (socket) => {
         const roomName = socket.data.roomName;
         if (!roomName) return;
         const room = rooms[roomName];
-        if (!room || room.jatekosok.length === 0) return;
+        
+        if (!room || room.jatekosok.length === 0 || room.jatekMegy) return;
         
         room.jatekMegy = true;
-        room.feladvanyKeszitoId = null; // Gép által adott feladvány
-        room.jatekosok.forEach(j => { j.korPont = 0; });
+        room.feladvanyKeszitoId = null;
+        room.jatekosok.forEach(j => { j.korPont = 0; j.nezo = false; });
         room.kezdoJatekosIndex = 0;
         room.aktualisJatekosIndex = -1; 
         room.kitalaltBetuk = [];
@@ -465,7 +287,7 @@ io.on('connection', (socket) => {
                 jatekos.tavolVan = true; 
                 io.to(roomName).emit('player_skipped', { jatekosNev: jatekos.nev });
                 io.to(roomName).emit('lobby_update', room.jatekosok);
-                if (room.jatekosok[room.aktualisJatekosIndex].id === socket.id) {
+                if (room.jatekosok[room.aktualisJatekosIndex] && room.jatekosok[room.aktualisJatekosIndex].id === socket.id) {
                     KovetkezoJatekos(roomName);
                 }
             }
@@ -501,7 +323,7 @@ io.on('connection', (socket) => {
         if (!room) return;
         
         room.kivalasztottFeladvany = { kategoria: data.kategoria, szoveg: data.szoveg };
-        room.feladvanyKeszitoId = socket.id; // Bejegyezzük, hogy Ő adta fel a feladványt!
+        room.feladvanyKeszitoId = socket.id;
         
         inditsdAzUjKort(roomName, room);
     });
@@ -512,7 +334,7 @@ io.on('connection', (socket) => {
         if (!room) return;
         
         room.kivalasztottFeladvany = UjFeladvanySorsolasa(room);
-        room.feladvanyKeszitoId = null; // Gép által adott feladványnál nincs feladó
+        room.feladvanyKeszitoId = null;
         
         if(!room.kivalasztottFeladvany) return; 
         inditsdAzUjKort(roomName, room);
@@ -521,10 +343,13 @@ io.on('connection', (socket) => {
     function inditsdAzUjKort(roomName, room) {
         io.to(roomName).emit('atvezeto_inditasa');
         setTimeout(() => {
-            room.jatekosok.forEach(j => { j.korPont = 0; });
+            // ÚJ KÖR: Mindenkit beemelünk a játékba (a nézőket is teljes értékű játékossá tesszük)
+            room.jatekosok.forEach(j => { 
+                j.korPont = 0; 
+                j.nezo = false; 
+            });
             room.kitalaltBetuk = [];
             
-            // Körök kezdőjátékosának léptetése, hogy ne mindig a 0. játékos kezdjen
             if (typeof room.kezdoJatekosIndex !== 'number') room.kezdoJatekosIndex = 0;
             room.kezdoJatekosIndex = (room.kezdoJatekosIndex + 1) % room.jatekosok.length;
             
