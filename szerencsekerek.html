@@ -43,57 +43,100 @@
             white-space: nowrap;
             border: 0;
         }
+
+        /* ÚJ JÁTÉK AJÁNLÓ KÁRTYA STÍLUSA */
+        #uj-jatek-promocio {
+            background-color: #ffffff;
+            border: 3px solid #17a2b8;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .promocio-gombok {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .promocio-gomb-szoszatyor {
+            background-color: #28a745 !important;
+            font-weight: bold;
+            font-size: 19px !important;
+            padding: 12px 20px !important;
+        }
+        .promocio-gomb-szerencsekerek {
+            background-color: #007bff !important;
+            font-size: 18px !important;
+            padding: 12px 20px !important;
+        }
     </style>
 </head>
 <body>
 
     <section id="lobby-screen">
         <h1>Szerencsekerék V0.5 BETA</h1>
-        
-        <div class="fejlesztoi-szoveg">
-            <p><strong>Készítette:</strong> Rauch Róbert</p>
-            <p>A legutóbbi frissítésben: 
-<ul>
-<li>Bevezetésre került a publikus szoba, amelynek neve szerencsekerek, de egy dedikált gomb is odaviszi a játékost a bejelentkezési képernyőn. A játékélmény megőrzése érdekében egy szobában maximum egyszerre 10 fő játszhat.
-<li>
-Finomodott a szétkapcsolások vagy a véletlen kilépések kezelése. Ha valamilyen okból bomlott a kapcsolat, ugyanazon nevet és szobát megadva a játékos vissza tud térni és folytathatja a játékot.
-<li>
-Már játék közben is elérhető a csevegés.
-<li>
-Ha egy adott szobába játék közben lép be egy új érkező, az adott körben nézőként nyomon követheti az épp zajló játékot illetve használhatja a csevegőt,  teljes jogú játékossá pedig a következő körben válik.
-</ul>
 
-            <p>A játék ezen verziója jelenleg tesztfázisban, úgynevezett beta állapotban van, így előfordulhatnak hibák, anomáliák a használat közben, ezekért előre is elnézést kérek. Az építő jellegű javaslatokat vagy a hibabejelentéseket szívesen várom az alábbi e-mail címre:</p>
-            <p><a href="mailto:rauch33@gmail.com"><strong>rauch33@gmail.com</strong></a></p>
-            <p><em>Jó játékot kívánok!</em></p>
+        <!-- ÚJ JÁTÉK AJÁNLÓ KÁRTYA (ALAPÉRTELMEZETTEN EZ LÁTSZIK) -->
+        <div id="uj-jatek-promocio" role="region" aria-labelledby="promocio-cim">
+            <h2 id="promocio-cim" style="margin-top: 0; color: #17a2b8;">Már tesztelhető új online társasjátékunk! 🎉</h2>
+            <p style="font-size: 18px; line-height: 1.5;">
+                Legújabb produktumunk egy akadálymentes multiplayer szókirakó játék, amely a <strong>Szószatyor</strong> nevet viseli, célja pedig, hogy időben, elsőként találjuk ki az összekevert betűkből az értelmes szót. A játék egyaránt játszható hagyományos módon, és képernyőolvasó szoftverrel is.
+            </p>
+            <div class="promocio-gombok">
+                <a href="https://szoszatyor.onrender.com" target="_blank" class="gomb-link promocio-gomb-szoszatyor">
+                    🧩 Megnézem az új játékot (Szószatyor)
+                </a>
+                <button type="button" id="szerencsekerek-folytatas-btn" class="promocio-gomb-szerencsekerek">
+                    🎡 Belépés a Szerencsekerék játékba
+                </button>
+            </div>
         </div>
 
-        <p><strong>Gyorsbillentyűk:</strong> <code>Alt+P</code> (Pörgetés), <code>Alt+M</code> (Megfejtés), <code>Alt+J</code> (Állás), <code>Alt+K</code> (Kimaradás), <code>Alt+I</code> (Visszatérés), <code>Alt+Q</code> (Kilépés a szobából)</p>
-        
-        <div id="belepest-keres-blokk" class="info-szekcio">
-            <label style="display:block;">Írd be a neved:</label>
-            <input type="text" id="my-name-input" placeholder="Pl: Géza" style="width: 100%; max-width: 300px;" autocomplete="off">
-            <label style="display:block; margin-top:10px;">Szoba neve:</label>
-            <input type="text" id="room-name-input" placeholder="Pl: pentek-este" style="width: 100%; max-width: 300px;" autocomplete="off">
-            <br>
-            <button id="join-btn" style="background-color: #28a745;">Csatlakozás a szobához</button>
-            <button id="join-public-btn" style="background-color: #17a2b8; margin-left: 5px;">Belépés a publikus szobába</button>
+        <!-- SZERENCSEKERÉK BEJELENTKEZÉSI FELÜLET (ALAPÉRTELMEZETTEN REJTVE: class="hidden") -->
+        <div id="szerencsekerek-bejelentkezes" class="hidden">
+            <div class="fejlesztoi-szoveg">
+                <p><strong>Készítette:</strong> Rauch Róbert</p>
+                <p>A legutóbbi frissítésben:</p>
+                <ul>
+                    <li>Bevezetésre került a publikus szoba, amelynek neve szerencsekerek, de egy dedikált gomb is odaviszi a játékost a bejelentkezési képernyőn. A játékélmény megőrzése érdekében egy szobában maximum egyszerre 10 fő játszhat.</li>
+                    <li>Finomodott a szétkapcsolások vagy a véletlen kilépések kezelése. Ha valamilyen okból bomlott a kapcsolat, ugyanazon nevet és szobát megadva a játékos vissza tud térni és folytathatja a játékot.</li>
+                    <li>Már játék közben is elérhető a csevegés.</li>
+                    <li>Ha egy adott szobába játék közben lép be egy új érkező, az adott körben nézőként nyomon követheti az épp zajló játékot illetve használhatja a csevegőt, teljes jogú játékossá pedig a következő körben válik.</li>
+                </ul>
+
+                <p>A játék ezen verziója jelenleg tesztfázisban, úgynevezett beta állapotban van, így előfordulhatnak hibák, anomáliák a használat közben, ezekért előre is elnézést kérek. Az építő jellegű javaslatokat vagy a hibabejelentéseket szívesen várom az alábbi e-mail címre:</p>
+                <p><a href="mailto:rauch33@gmail.com"><strong>rauch33@gmail.com</strong></a></p>
+                <p><em>Jó játékot kívánok!</em></p>
+            </div>
+
+            <p><strong>Gyorsbillentyűk:</strong> <code>Alt+P</code> (Pörgetés), <code>Alt+M</code> (Megfejtés), <code>Alt+J</code> (Állás), <code>Alt+K</code> (Kimaradás), <code>Alt+I</code> (Visszatérés), <code>Alt+Q</code> (Kilépés a szobából)</p>
             
-            <hr style="margin: 15px 0;">
-            <button id="jogi-btn" style="background-color: #6c757d; font-size: 15px;">📜 Jogi nyilatkozat és feltételek</button>
-            <a href="szerencsekerek0.7setup.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;">Offline verzió letöltése (Windows X64)</a>
-        </div>
-        
-        <div id="lobby-players" class="hidden info-szekcio">
-            <h3>Csatlakozott játékosok a szobában:</h3>
-            <ul id="players-list"></ul>
-            <button id="start-game-btn" class="hidden" style="margin-bottom: 15px;">Játék indítása mindenkinél! 🚀</button>
+            <div id="belepest-keres-blokk" class="info-szekcio">
+                <label style="display:block;">Írd be a neved:</label>
+                <input type="text" id="my-name-input" placeholder="Pl: Géza" style="width: 100%; max-width: 300px;" autocomplete="off">
+                <label style="display:block; margin-top:10px;">Szoba neve:</label>
+                <input type="text" id="room-name-input" placeholder="Pl: pentek-este" style="width: 100%; max-width: 300px;" autocomplete="off">
+                <br>
+                <button id="join-btn" style="background-color: #28a745;">Csatlakozás a szobához</button>
+                <button id="join-public-btn" style="background-color: #17a2b8; margin-left: 5px;">Belépés a publikus szobába</button>
+                
+                <hr style="margin: 15px 0;">
+                <button id="jogi-btn" style="background-color: #6c757d; font-size: 15px;">📜 Jogi nyilatkozat és feltételek</button>
+                <a href="szerencsekerek0.7setup.exe" download class="gomb-link" style="background-color: #17a2b8; font-size: 15px;">Offline verzió letöltése (Windows X64)</a>
+            </div>
             
-            <div id="lobby-chat-szekcio" style="margin-top: 15px; padding: 10px; background-color: #e8f4f8; border-radius: 5px;">
-                <h4>Szoba Csevegő (Várakozó)</h4>
-                <input type="text" id="lobby-chat-input" placeholder="Írj a szobában lévőknek..." style="width: 65%;" autocomplete="off">
-                <button id="lobby-chat-kuld-btn">Küldés</button>
-                <ul id="lobby-chat-messages" style="list-style-type: none; padding-left: 0; max-height: 150px; overflow-y: auto;" aria-live="polite"></ul>
+            <div id="lobby-players" class="hidden info-szekcio">
+                <h3>Csatlakozott játékosok a szobában:</h3>
+                <ul id="players-list"></ul>
+                <button id="start-game-btn" class="hidden" style="margin-bottom: 15px;">Játék indítása mindenkinél! 🚀</button>
+                
+                <div id="lobby-chat-szekcio" style="margin-top: 15px; padding: 10px; background-color: #e8f4f8; border-radius: 5px;">
+                    <h4>Szoba Csevegő (Várakozó)</h4>
+                    <input type="text" id="lobby-chat-input" placeholder="Írj a szobában lévőknek..." style="width: 65%;" autocomplete="off">
+                    <button id="lobby-chat-kuld-btn">Küldés</button>
+                    <ul id="lobby-chat-messages" style="list-style-type: none; padding-left: 0; max-height: 150px; overflow-y: auto;" aria-live="polite"></ul>
+                </div>
             </div>
         </div>
     </section>
@@ -196,6 +239,13 @@ Ha egy adott szobába játék közben lép be egy új érkező, az adott körben
     </section>
 
     <script>
+        // AJÁNLÓ KÁRTYA ELREJTÉSE ÉS A SZERENCSEKERÉK BEJELENTKEZÉS MEGJELENÍTÉSE
+        document.getElementById("szerencsekerek-folytatas-btn").addEventListener("click", () => {
+            document.getElementById("uj-jatek-promocio").classList.add("hidden");
+            document.getElementById("szerencsekerek-bejelentkezes").classList.remove("hidden");
+            document.getElementById("my-name-input").focus();
+        });
+
         const socket = io();
         let myId = null;
         let myName = "";
@@ -204,7 +254,7 @@ Ha egy adott szobába játék közben lép be egy új érkező, az adott körben
         let aktJatekosId = null;
         let jatekosokCache = []; 
         let feladvanyKeszitoIdCache = null;
-        let amINezo = false; // ÚJ FLAG A NÉZŐI ÁLLAPOTHOZ
+        let amINezo = false;
 
         const kerekBejelento = document.getElementById("kerek-bejelento");
         const BEJELENTESI_SZUNET = 2000; 
@@ -417,7 +467,7 @@ Ha egy adott szobába játék közben lép be egy új érkező, az adott körben
         }
 
         socket.on('game_started', (data) => {
-            amINezo = false; // AZ ÚJ KÖRBEN MÁR MINDENKI JÁTÉKOS!
+            amINezo = false;
             document.getElementById("kimaradas-btn").classList.remove("hidden");
             document.getElementById("lobby-screen").classList.add("hidden");
             document.getElementById("atvezeto-kepernyo").classList.add("hidden");
@@ -497,6 +547,9 @@ Ha egy adott szobába játék közben lép be egy új érkező, az adott körben
                 document.getElementById("game-screen").classList.add("hidden");
                 document.getElementById("lobby-screen").classList.remove("hidden");
                 document.getElementById("lobby-players").classList.add("hidden");
+                
+                // Visszatéréskor megjelenítjük a bejelentkező felületet
+                document.getElementById("szerencsekerek-bejelentkezes").classList.remove("hidden");
                 document.getElementById("belepest-keres-blokk").classList.remove("hidden");
                 
                 document.getElementById("join-btn").disabled = false;
